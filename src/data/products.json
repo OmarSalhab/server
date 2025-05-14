@@ -1,0 +1,107 @@
+[
+  {
+    "image": "https://images.unsplash.com/photo-1585275481315-1a991a404144?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Navy Blue Casual Suit",
+    "description": "A comfortable and stylish navy blue suit perfect for casual outings. Made with breathable cotton fabric.",
+    "price": 149.99,
+    "categorie": "Casual"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Classic Black Wedding Suit",
+    "description": "An elegant black suit tailored for weddings. Features a satin lapel and a refined fit.",
+    "price": 299.99,
+    "categorie": "Wedding"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1660942871134-535899783065?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    "title": "Light Gray Summer Suit",
+    "description": "A lightweight light gray suit ideal for summer events. Crafted from linen for maximum comfort.",
+    "price": 179.99,
+    "categorie": "Summer"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Navy Pinstripe Business Suit",
+    "description": "A professional navy pinstripe suit designed for business meetings. Made with high-quality wool.",
+    "price": 349.99,
+    "categorie": "Business"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1560264234-b56f90d70498?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Beige Casual Linen Suit",
+    "description": "A relaxed beige linen suit perfect for warm weather casual occasions. Features a soft, unstructured design.",
+    "price": 159.99,
+    "categorie": "Casual"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1556797174-4444018a74e7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Burgundy Velvet Wedding Suit",
+    "description": "A luxurious burgundy velvet suit ideal for making a statement at weddings. Features a shawl lapel and a slim fit.",
+    "price": 399.99,
+    "categorie": "Wedding"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "White Summer Seersucker Suit",
+    "description": "A classic white seersucker suit perfect for summer parties and events. Lightweight and breathable.",
+    "price": 189.99,
+    "categorie": "Summer"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Charcoal Gray Business Suit",
+    "description": "A versatile charcoal gray suit suitable for a range of business settings. Made with durable wool blend.",
+    "price": 279.99,
+    "categorie": "Business"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1585275481315-1a991a404144?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Olive Green Casual Suit",
+    "description": "A trendy olive green suit perfect for casual Fridays or weekend outings. Features a modern, slim fit.",
+    "price": 169.99,
+    "categorie": "Casual"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Midnight Blue Wedding Tuxedo",
+    "description": "A sophisticated midnight blue tuxedo perfect for formal weddings. Features a peak lapel and a tailored fit.",
+    "price": 449.99,
+    "categorie": "Wedding"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1660942871134-535899783065?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    "title": "Light Blue Summer Cotton Suit",
+    "description": "A refreshing light blue cotton suit ideal for summer days. Breathable and comfortable for all-day wear.",
+    "price": 159.99,
+    "categorie": "Summer"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Dark Gray Business Checkered Suit",
+    "description": "A stylish dark gray checkered suit suitable for making a statement in the office. Made with a fine wool blend.",
+    "price": 329.99,
+    "categorie": "Business"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1585275481315-1a991a404144?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Rust Colored Casual Suit",
+    "description": "A unique rust colored suit perfect for adding some color to your casual wardrobe. Comfortable and stylish.",
+    "price": 179.99,
+    "categorie": "Casual"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
+    "title": "Ivory Wedding Suit",
+    "description": "A sophisticated ivory suit perfect for a destination wedding. Lightweight and elegant.",
+    "price": 419.99,
+    "categorie": "Wedding"
+  },
+  {
+    "image": "https://images.unsplash.com/photo-1660942871134-535899783065?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    "title": "Mint Green Summer Suit",
+    "description": "A refreshing mint green suit ideal for summer parties. Made with breathable linen.",
+    "price": 199.99,
+    "categorie": "Summer"
+  }
+]
