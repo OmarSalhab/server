@@ -1,9 +1,11 @@
 const { Product } = require("../models/Product");
 const asyncHandler = require("express-async-handler");
 
+
 export const getUsers = (req, res) => {
 	res.send(`Server is running. ${req.headers.host}`);
 }
+
 
 export const postUser = async (req, res) => {
 	const user = req.body;
@@ -18,4 +20,4 @@ export const postUser = async (req, res) => {
 	} catch (error) {
 		res.status(500).json({ success: false, message: "internal server Error" });
 	}
-}
+};

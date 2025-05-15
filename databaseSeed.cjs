@@ -18,4 +18,5 @@ const dbSeeding = async () => {
 	}
 	console.log("database seeded complitly");
 };
+
 dbSeeding();
