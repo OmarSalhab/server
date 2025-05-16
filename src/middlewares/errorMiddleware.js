@@ -4,7 +4,7 @@ const globalAsyncErrorHandler = (err, req, res, next) => {
 			.status(400)
 			.json({ success: false, message: "Email already exists" });
 	}
-	
+
 	if (err.statusCode) {
 		return res
 			.status(err.statusCode)

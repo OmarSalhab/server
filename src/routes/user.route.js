@@ -3,20 +3,24 @@ const router = express.Router();
 const asyncHandler = require("express-async-handler");
 const dotenv = require("dotenv");
 dotenv.config({ path: "..\\config\\.env" });
+
 const {
 	signupUser,
 	getUserById,
 	getAllUsers,
 	getUserName,
 	loginUser,
+	updateUserInfo,
 } = require("../controllers/user.controller");
+
 const {
 	emailValidator,
 	passwordValidator,
 	nameValidator,
 	validate,
 } = require("../middlewares/validatorMiddleware");
- const {protect} = require("../middlewares/authMiddleware")
+
+const { protect } = require("../middlewares/authMiddleware");
 
 //Guest Role Queries
 router.post(
@@ -37,10 +41,17 @@ router.post(
 );
 
 //User Role Queries
-router.get("/:id/profile",protect, asyncHandler(getUserById));
-router.get("/:id/name",protect, asyncHandler(getUserName));
+router.get("/:id/profile", protect, asyncHandler(getUserById));
+router.get("/:id/name", protect, asyncHandler(getUserName));
 
-// router.put("/:id",nameValidator() ,emailValidator(), passwordValidator(), updateUser);
+router.put(
+	"/:id/profile",
+	nameValidator(),
+	emailValidator(),
+	passwordValidator(),
+	protect,
+	asyncHandler(updateUserInfo)
+);
 
 //Admin Role Queries
 router.get("/", asyncHandler(getAllUsers));

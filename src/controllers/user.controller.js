@@ -5,7 +5,8 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "..\\config\\.env" });
 
 const signupUser = async (req, res) => {
-	const user = req.body;
+	const { name, email, password } = req.body;
+	const user = { name, email, password };
 	const newUser = new User(user);
 	// implement otp email verfiyng
 	await newUser.save();
@@ -41,19 +42,15 @@ const loginUser = async (req, res) => {
 		},
 	});
 };
-const getUserById = async (req, res) => {
-	const userId = req.params.id;
-	const user = await User.findById(userId).select("name email");
-	if (!user) {
-		const err = new Error("User not found");
-		err.statusCode = 404;
-		throw err;
-	}
-	res.status(200).json({ success: true, data: user });
-};
 
 const getUserName = async (req, res) => {
 	const userId = req.params.id;
+	if (req.user._id.toString() !== userId) {
+		return res.status(403).json({
+			success: false,
+			message: "Forbidden: You can only access your own profile.",
+		});
+	}
 	const user = await User.findById(userId).select("name");
 	if (!user) {
 		const err = new Error("User not found");
@@ -63,9 +60,70 @@ const getUserName = async (req, res) => {
 	res.status(200).json({ success: true, data: user });
 };
 
+const getUserById = async (req, res) => {
+	const userId = req.params.id;
+
+	if (req.user._id.toString() !== userId) {
+		return res.status(403).json({
+			success: false,
+			message: "Forbidden: You can only access your own profile.",
+		});
+	}
+	const user = await User.findById(userId).select("name email");
+	if (!user) {
+		const err = new Error("User not found");
+		err.statusCode = 404;
+		throw err;
+	}
+	res.status(200).json({ success: true, data: user });
+};
+
+const updateUserInfo = async (req, res) => {
+	const userId = req.params.id;
+
+	if (req.user._id.toString() !== userId) {
+		return res.status(403).json({
+			success: false,
+			message: "Forbidden: You can only update your own profile.",
+		});
+	}
+
+	const { name, email, password } = req.body;
+
+	const user = await User.findById(userId);
+	if (!user) {
+		return res.status(404).json({
+			success: false,
+			message: "User not found",
+		});
+	}
+
+	if (name) user.name = name;
+	if (email) user.email = email;
+	if (password) user.password = password; // Will be hashed by pre-save hook
+
+	await user.save();
+
+	res.status(200).json({
+		success: true,
+		message: "Successfully updated user",
+		data: {
+			name: user.name,
+			email: user.email,
+		},
+	});
+};
+
 const getAllUsers = async (req, res) => {
 	const allUsers = await User.find().select("name email");
 	res.status(200).json({ success: true, data: allUsers });
 };
 
-module.exports = { signupUser, getUserById, getAllUsers, getUserName, loginUser };
+module.exports = {
+	signupUser,
+	getUserById,
+	getAllUsers,
+	getUserName,
+	loginUser,
+	updateUserInfo,
+};

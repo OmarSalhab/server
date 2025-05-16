@@ -15,6 +15,8 @@ app.use(express.json());
 // app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use(globalAsyncErrorHandler);
+
+
 app.listen(PORT, async () => {
 	try {
 		await dbConnect();
