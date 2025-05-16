@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const dotenv = require("dotenv");
-dotenv({ path: "..\\config\\.env" });
+dotenv.config({ path: "..\\config\\.env" });
 const asyncHandler = require("express-async-handler");
 
 const generateToken = (userId) => {

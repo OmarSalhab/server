@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const asyncHandler = require("express-async-handler");
+const dotenv = require("dotenv");
+dotenv.config({ path: "..\\config\\.env" });
 const {
 	signupUser,
 	getUserById,
@@ -14,7 +16,7 @@ const {
 	nameValidator,
 	validate,
 } = require("../middlewares/validatorMiddleware");
-// const {} = require("../middlewares/authMiddleware");
+ const {protect} = require("../middlewares/authMiddleware")
 
 //Guest Role Queries
 router.post(
@@ -35,8 +37,8 @@ router.post(
 );
 
 //User Role Queries
-router.get("/:id/profile", asyncHandler(getUserById));
-router.get("/:id/name", asyncHandler(getUserName));
+router.get("/:id/profile",protect, asyncHandler(getUserById));
+router.get("/:id/name",protect, asyncHandler(getUserName));
 
 // router.put("/:id",nameValidator() ,emailValidator(), passwordValidator(), updateUser);
 

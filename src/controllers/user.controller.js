@@ -2,7 +2,7 @@ const User = require("../models/User");
 const { generateToken } = require("../middlewares/authMiddleware");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
-dotenv({ path: "..\\config\\.env" });
+dotenv.config({ path: "..\\config\\.env" });
 
 const signupUser = async (req, res) => {
 	const user = req.body;
@@ -15,14 +15,14 @@ const signupUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-	const { email, passward } = req.body;
+	const { email, password } = req.body;
 	const user = await User.findOne({ email: email });
 	if (!user) {
 		const err = new Error("User not found, Faild to login");
 		err.statusCode = 404;
 		throw err;
 	}
-	const isMatch = await bcrypt.compare(passward, user.password);
+	const isMatch = await bcrypt.compare(password, user.password);
 	if (!isMatch) {
 		{
 			const err = new Error("Invalid Password");
