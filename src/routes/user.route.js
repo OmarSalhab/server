@@ -11,6 +11,7 @@ const {
 	getUserName,
 	loginUser,
 	updateUserInfo,
+	deleteUser,
 } = require("../controllers/user.controller");
 
 const {
@@ -20,7 +21,7 @@ const {
 	validate,
 } = require("../middlewares/validatorMiddleware");
 
-const { protect } = require("../middlewares/authMiddleware");
+const { protect, isAuthorizedAdmin } = require("../middlewares/authMiddleware");
 
 //Guest Role Queries
 router.post(
@@ -31,7 +32,6 @@ router.post(
 	validate,
 	asyncHandler(signupUser)
 );
-
 router.post(
 	"/login",
 	emailValidator(),
@@ -54,7 +54,16 @@ router.put(
 );
 
 //Admin Role Queries
-router.get("/", asyncHandler(getAllUsers));
-// router.delete("/:id", deleteUser);
+router.get("/", protect, isAuthorizedAdmin, asyncHandler(getAllUsers));
+
+router.put(
+	"/:id/admin",
+	protect,
+	isAuthorizedAdmin,
+	asyncHandler(updateUserInfo)
+);
+// router.put("/:id/admin",protect, isAuthorizedAdmin, asyncHandler(updateUserInfo));
+
+router.delete("/:id", protect, isAuthorizedAdmin, asyncHandler(deleteUser));
 
 module.exports = router;

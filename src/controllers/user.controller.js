@@ -7,8 +7,9 @@ dotenv.config({ path: "..\\config\\.env" });
 const signupUser = async (req, res) => {
 	const { name, email, password } = req.body;
 	const user = { name, email, password };
-	const newUser = new User(user);
 	// implement otp email verfiyng
+	user.role = "user";
+	const newUser = new User(user);
 	await newUser.save();
 	res
 		.status(200)
@@ -39,6 +40,7 @@ const loginUser = async (req, res) => {
 			id: user._id,
 			name: user.name,
 			email: user.email,
+			role: user.role,
 		},
 	});
 };
@@ -69,7 +71,7 @@ const getUserById = async (req, res) => {
 			message: "Forbidden: You can only access your own profile.",
 		});
 	}
-	const user = await User.findById(userId).select("name email");
+	const user = await User.findById(req.user._id).select("name email");
 	if (!user) {
 		const err = new Error("User not found");
 		err.statusCode = 404;
@@ -90,7 +92,7 @@ const updateUserInfo = async (req, res) => {
 
 	const { name, email, password } = req.body;
 
-	const user = await User.findById(userId);
+	const user = await User.findById(req.user._id);
 	if (!user) {
 		return res.status(404).json({
 			success: false,
@@ -119,6 +121,22 @@ const getAllUsers = async (req, res) => {
 	res.status(200).json({ success: true, data: allUsers });
 };
 
+const deleteUser = async (req, res) => {
+	const userId = req.params.id;
+	if(req.params.id == req.user._id.toString()){
+		const err = new Error("This action can't be done");
+		err.statusCode = 401;
+		throw err;
+	}
+	const user = await User.deleteOne({ _id: userId });
+	if (user.deletedCount === 0) {
+		const err = new Error("User not found");
+		err.statusCode = 404;
+		throw err;
+	}
+	res.json({ success: true, message: "user has been deleted" });
+};
+
 module.exports = {
 	signupUser,
 	getUserById,
@@ -126,4 +144,5 @@ module.exports = {
 	getUserName,
 	loginUser,
 	updateUserInfo,
+	deleteUser,
 };

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const Product = require("./Product");
 
 const userSchema = new mongoose.Schema(
 	{
@@ -13,6 +14,15 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		role: { type: String, required: true },
+
+		cart: [
+			{
+				product: { type: mongoose.Schema.ObjectId, ref: "Profuct" },
+				quantity: { type: Number, default: 1 },
+			},
+		],
+		wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 	},
 	{ timestamps: true }
 );

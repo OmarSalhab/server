@@ -1,20 +1,25 @@
 const express = require("express");
 const router = express.Router();
-// // const {postUser, getUsers} = require('../controllers/user.controller')
+const asyncHandler = require("express-async-handler");
+const { protect, isAuthorizedAdmin } = require("../middlewares/authMiddleware");
+const {
+	getProducts,
+	getProductById,
+	addToCart,
+	addToWishlist,
+    deleteCartProdut,
+    deleteWishListProdut
+} = require("../controllers/product.controller");
 
-// // router.get("/", getUsers);
+//Guest Role Queries
+router.get("/", asyncHandler(getProducts));
+router.get("/:id", asyncHandler(getProductById));
 
-// // router.post("/", postUser);
+//User Role Queries
+router.post("/cart/:id", protect, asyncHandler(addToCart));
+router.post("/wishlist/:id", protect, asyncHandler(addToWishlist));
+router.delete("/cart/:id",protect, asyncHandler(deleteCartProdut));
+router.delete("/wishlist/:id",protect, asyncHandler(deleteWishListProdut));
 
-// router.delete("/:id", async (req, res) => {
-// 	const userId = req.params?.id;
-// 	if (!userId) return res.status(400).json({ message: "please provide id" });
-// 	try {
-// 		await User.deleteOne({ _id: userId });
-// 		res.status(200).json({ success: true, message: "user deleted" });
-// 	} catch (error) {
-// 		res.status(500).json({ success: false });
-// 	}
-// });
 
 module.exports = router;

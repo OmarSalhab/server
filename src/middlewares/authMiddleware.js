@@ -10,6 +10,7 @@ const generateToken = (userId) => {
 
 const protect = async (req, res, next) => {
 	let token;
+
 	if (
 		req.headers.authorization &&
 		req.headers.authorization.startsWith("Bearer ")
@@ -31,4 +32,16 @@ const protect = async (req, res, next) => {
 			.json({ success: false, message: "Not authorized, token failed" });
 	}
 };
-module.exports = { generateToken, protect };
+
+const isAuthorizedAdmin = asyncHandler(async (req, res, next) => {
+	const role = req.user.role;
+	if (role === "user") {
+		const err = new Error("User Not Authorized");
+		err.status = 401;
+		throw err;
+	} else if (role === "admin") {
+		next();
+	}
+});
+
+module.exports = { generateToken, protect, isAuthorizedAdmin };
