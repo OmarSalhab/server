@@ -11,6 +11,9 @@ const globalAsyncErrorHandler = (err, req, res, next) => {
 			.json({ success: false, message: err.message });
 	}
 
+	if (err.name === "CastError") {
+            return res.status(400).json({ success: false, message: "Invalid ID" });
+        }
 	//default fallback
 	res
 		.status(500)

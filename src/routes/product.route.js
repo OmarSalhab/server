@@ -7,8 +7,8 @@ const {
 	getProductById,
 	addToCart,
 	addToWishlist,
-    deleteCartProdut,
-    deleteWishListProdut
+	deleteCartProdut,
+	deleteWishListProdut,
 } = require("../controllers/product.controller");
 
 //Guest Role Queries
@@ -18,8 +18,7 @@ router.get("/:id", asyncHandler(getProductById));
 //User Role Queries
 router.post("/cart/:id", protect, asyncHandler(addToCart));
 router.post("/wishlist/:id", protect, asyncHandler(addToWishlist));
-router.delete("/cart/:id",protect, asyncHandler(deleteCartProdut));
-router.delete("/wishlist/:id",protect, asyncHandler(deleteWishListProdut));
-
+router.delete("/cart/:id", protect, asyncHandler(deleteCartProdut));
+router.delete("/wishlist/:id", protect, asyncHandler(deleteWishListProdut));
 
 module.exports = router;
