@@ -20,8 +20,68 @@ const getProductById = async (req, res) => {
 	const product = await Product.findById({ _id: userId });
 	res.json({ success: true, data: product });
 };
-const addToCart = async (req, res) => {};
-const deleteCartProdut = async (req, res) => {};
+
+const addToCart = async (req, res) => {
+	const userId = req.user._id;
+	const productId = req.params.id;
+	const { quantity = 1 } = req.body;
+
+	// This code to handle the async Error invalid ID;
+	await Product.findById(productId);
+
+	const user = await User.findById(userId);
+	const cartItem = await user.cart.find(
+		(item) => item.product.toString() === productId
+	);
+
+	if (cartItem) {
+		cartItem.quantity += quantity;
+	} else {
+		user.cart.push({ product: productId, quantity });
+	}
+
+	await user.save();
+
+	res
+		.status(200)
+		.json({ success: true, message: "Product added to cart", cart: user.cart });
+};
+
+const deleteCartProdut = async (req, res) => {
+	const userId = req.user._id;
+    const productId = req.params.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const cartItem = user.cart.find(
+        (item) => item.product.toString() === productId
+    );
+
+    if (!cartItem) {
+        return res.status(404).json({ success: false, message: "Product not found in cart" });
+    }
+
+    // Decrease quantity or remove item if quantity is 1
+    if (cartItem.quantity > 1) {
+        cartItem.quantity -= 1;
+    } else {
+        user.cart = user.cart.filter(
+            (item) => item.product.toString() !== productId
+        );
+    }
+
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Product quantity updated in cart",
+        cart: user.cart,
+    });
+};
+
 const deleteWishListProdut = async (req, res) => {};
 const addToWishlist = async (req, res) => {};
 
