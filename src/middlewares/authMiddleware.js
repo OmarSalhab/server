@@ -4,8 +4,14 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "..\\config\\.env" });
 const asyncHandler = require("express-async-handler");
 
-const generateToken = (userId) => {
-	return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "7d" });
+const generateToken = (user) => {
+	return jwt.sign(
+		{ id: user._id,
+		role: user.role,
+		route: user.route },
+		process.env.JWT_SECRET,
+		{ expiresIn: "7d" }
+	);
 };
 
 const protect = async (req, res, next) => {
@@ -24,7 +30,7 @@ const protect = async (req, res, next) => {
 	}
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		req.user = await User.findById(decoded.id).select("-password");
+		req.user = await User.findById(decoded.id).select("-passwordHash");
 		next();
 	} catch (error) {
 		return res
@@ -44,4 +50,20 @@ const isAuthorizedAdmin = asyncHandler(async (req, res, next) => {
 	}
 });
 
-module.exports = { generateToken, protect, isAuthorizedAdmin };
+const isAuthorizedDriver = asyncHandler(async (req, res, next) => {
+	const role = req.user.role;
+	if (role === "user" || role === "admin") {
+		const err = new Error("User Not Authorized");
+		err.status = 401;
+		throw err;
+	} else if (role === "rider") {
+		next();
+	}
+});
+
+module.exports = {
+	generateToken,
+	protect,
+	isAuthorizedAdmin,
+	isAuthorizedDriver,
+};

@@ -5,65 +5,84 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "..\\config\\.env" });
 
 const {
-	signupUser,
-	getUserById,
-	getAllUsers,
-	getUserName,
+	signupDriver,
+	signupPassenger,
 	loginUser,
-	updateUserInfo,
-	deleteUser,
+	updateUserRoutes,
 } = require("../controllers/user.controller");
 
 const {
-	emailValidator,
+	phoneValidator,
 	passwordValidator,
+	carModelValidator,
+	imageUrlValidator,
 	nameValidator,
+	idValidator,
 	validate,
 } = require("../middlewares/validatorMiddleware");
 
-const { protect, isAuthorizedAdmin } = require("../middlewares/authMiddleware");
+const {
+	protect,
+	isAuthorizedAdmin,
+	isAuthorizedDriver,
+} = require("../middlewares/authMiddleware");
 
 //Guest Role Queries
 router.post(
-	"/",
+	"/register/passenger",
 	nameValidator(),
-	emailValidator(),
+	phoneValidator(),
 	passwordValidator(),
 	validate,
-	asyncHandler(signupUser)
+	asyncHandler(signupPassenger)
 );
+
+router.post(
+	"/register/driver",
+	nameValidator(),
+	phoneValidator(),
+	carModelValidator(),
+	imageUrlValidator(),
+	passwordValidator(),
+	idValidator(),
+	validate,
+	asyncHandler(signupDriver)
+);
+
 router.post(
 	"/login",
-	emailValidator(),
+	phoneValidator(),
 	passwordValidator(),
 	validate,
 	asyncHandler(loginUser)
 );
 
-//User Role Queries
-router.get("/:id/profile", protect, asyncHandler(getUserById));
-router.get("/:id/name", protect, asyncHandler(getUserName));
+router.put("/update-route", protect, asyncHandler(updateUserRoutes));
 
-router.put(
-	"/:id/profile",
-	nameValidator(),
-	emailValidator(),
-	passwordValidator(),
-	protect,
-	asyncHandler(updateUserInfo)
-);
+// //User Role Queries
+// router.get("/:id/profile", protect, asyncHandler(getUserById));
+// router.get("/:id/name", protect, asyncHandler(getUserName));
 
-//Admin Role Queries
-router.get("/", protect, isAuthorizedAdmin, asyncHandler(getAllUsers));
+// router.put(
+// 	"/:id/profile",
+// 	nameValidator(),
+// 	emailValidator(),
+// 	passwordValidator(),
+// 	protect,
+// 	asyncHandler(updateUserInfo)
+// );
 
-router.put(
-	"/:id/admin",
-	protect,
-	isAuthorizedAdmin,
-	asyncHandler(updateUserInfo)
-);
+// //Admin Role Queries
+// router.get("/", protect, isAuthorizedAdmin, asyncHandler(getAllUsers));
+
+// router.put(
+// 	"/:id/admin",
+// 	protect,
+// 	isAuthorizedAdmin,
+// 	asyncHandler(updateUserInfo)
+// );
 // router.put("/:id/admin",protect, isAuthorizedAdmin, asyncHandler(updateUserInfo));
 
-router.delete("/:id", protect, isAuthorizedAdmin, asyncHandler(deleteUser));
+// router.delete("/:id", protect, isAuthorizedAdmin, asyncHandler(deleteUser));
 
 module.exports = router;

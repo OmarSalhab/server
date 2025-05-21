@@ -4,27 +4,72 @@ const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 dotenv.config({ path: "..\\config\\.env" });
 
-const signupUser = async (req, res) => {
-	const { name, email, password } = req.body;
-	const user = { name, email, password };
+const signupDriver = async (req, res) => {
+	const {
+		name,
+		phone,
+		passwordHash,
+		gender,
+		route,
+		carModel,
+		nationalId,
+		imageUrl,
+	} = req.body;
+
+	const exists = await User.findOne({ phone });
+	if (exists)
+		return res.status(400).json({ message: "Phone already registered" });
 	// implement otp email verfiyng
-	user.role = "user";
-	const newUser = new User(user);
-	await newUser.save();
-	res
-		.status(200)
-		.json({ success: true, message: "Succsesfully added new user" });
+	const newDriver = new User({
+		role: "driver",
+		name,
+		phone,
+		passwordHash,
+		gender,
+		route,
+		carModel,
+		nationalId,
+		imageUrl,
+		isApproved: false, // Manual approval required
+	});
+
+	await newDriver.save();
+
+	return res
+		.status(201)
+		.json({ message: "Driver registered and pending approval" });
+};
+
+const signupPassenger = async (req, res) => {
+	const { name, phone, passwordHash, gender, route } = req.body;
+
+	const exists = await User.findOne({ phone });
+	if (exists)
+		return res.status(400).json({ message: "Phone already registered" });
+	// implement otp email verfiyng
+	const newPassenger = new User({
+		role: "passenger",
+		name,
+		phone,
+		passwordHash,
+		gender,
+		route,
+		isApproved: true, // Not needed but for uniformity
+	});
+
+	await newPassenger.save();
+	return res.status(201).json({ message: "Passenger registered successfully" });
 };
 
 const loginUser = async (req, res) => {
-	const { email, password } = req.body;
-	const user = await User.findOne({ email: email });
+	const { phone, passwordHash } = req.body;
+	const user = await User.findOne({ phone: phone });
 	if (!user) {
 		const err = new Error("User not found, Faild to login");
 		err.statusCode = 404;
 		throw err;
 	}
-	const isMatch = await bcrypt.compare(password, user.password);
+	const isMatch = await bcrypt.compare(passwordHash, user.passwordHash);
 	if (!isMatch) {
 		{
 			const err = new Error("Invalid Password");
@@ -32,117 +77,51 @@ const loginUser = async (req, res) => {
 			throw err;
 		}
 	}
-	const token = generateToken(user._id);
-	res.json({
-		success: true,
+	if (user.role === "driver" && !user.isApproved) {
+		return res.status(403).json({ message: "Driver not yet approved" });
+	}
+	const token = generateToken(user);
+	return res.status(200).json({
 		token,
 		user: {
 			id: user._id,
 			name: user.name,
-			email: user.email,
 			role: user.role,
+			phone: user.phone,
+			route: user.route,
 		},
 	});
 };
 
-const getUserName = async (req, res) => {
-	const userId = req.params.id;
-	if (req.user._id.toString() !== userId) {
-		return res.status(403).json({
-			success: false,
-			message: "Forbidden: You can only access your own profile.",
-		});
+const updateUserRoutes = async (req, res) => {
+	const { from, to } = req.body;
+	const userId = req.user.id;
+
+	if (!from || !to) {
+		return res
+			.status(400)
+			.json({ message: 'Both "from" and "to" are required' });
 	}
-	const user = await User.findById(userId).select("name");
+
+	const user = await User.findByIdAndUpdate(
+		userId,
+		{ route: { from, to } },
+		{ new: true }
+	);
+
 	if (!user) {
-		const err = new Error("User not found");
-		err.statusCode = 404;
-		throw err;
+		return res.status(404).json({ message: "User not found" });
 	}
-	res.status(200).json({ success: true, data: user });
-};
-
-const getUserById = async (req, res) => {
-	const userId = req.params.id;
-
-	if (req.user._id.toString() !== userId) {
-		return res.status(403).json({
-			success: false,
-			message: "Forbidden: You can only access your own profile.",
-		});
-	}
-	const user = await User.findById(req.user._id).select("name email");
-	if (!user) {
-		const err = new Error("User not found");
-		err.statusCode = 404;
-		throw err;
-	}
-	res.status(200).json({ success: true, data: user });
-};
-
-const updateUserInfo = async (req, res) => {
-	const userId = req.params.id;
-
-	if (req.user._id.toString() !== userId) {
-		return res.status(403).json({
-			success: false,
-			message: "Forbidden: You can only update your own profile.",
-		});
-	}
-
-	const { name, email, password } = req.body;
-
-	const user = await User.findById(req.user._id);
-	if (!user) {
-		return res.status(404).json({
-			success: false,
-			message: "User not found",
-		});
-	}
-
-	if (name) user.name = name;
-	if (email) user.email = email;
-	if (password) user.password = password; // Will be hashed by pre-save hook
-
-	await user.save();
 
 	res.status(200).json({
-		success: true,
-		message: "Successfully updated user",
-		data: {
-			name: user.name,
-			email: user.email,
-		},
+		message: "Route updated successfully",
+		route: user.route,
 	});
-};
-
-const getAllUsers = async (req, res) => {
-	const allUsers = await User.find().select("name email");
-	res.status(200).json({ success: true, data: allUsers });
-};
-
-const deleteUser = async (req, res) => {
-	const userId = req.params.id;
-	if(req.params.id == req.user._id.toString()){
-		const err = new Error("This action can't be done");
-		err.statusCode = 401;
-		throw err;
-	}
-	const user = await User.deleteOne({ _id: userId });
-	if (user.deletedCount === 0) {
-		const err = new Error("User not found");
-		err.statusCode = 404;
-		throw err;
-	}
-	res.json({ success: true, message: "user has been deleted" });
 };
 
 module.exports = {
-	signupUser,
-	getUserById,
-	getAllUsers,
-	getUserName,
+	signupDriver,
+	signupPassenger,
 	loginUser,
-	updateUserInfo,
-	deleteUser,
+	updateUserRoutes,
 };
