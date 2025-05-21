@@ -6,6 +6,11 @@ const tripSchema = new mongoose.Schema({
 		ref: "User",
 		required: true,
 	},
+	tripId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "Route",
+		required: true,
+	},
 	route: {
 		from: { type: String, required: true },
 		to: { type: String, required: true },

@@ -41,7 +41,7 @@ const protect = async (req, res, next) => {
 
 const isAuthorizedAdmin = asyncHandler(async (req, res, next) => {
 	const role = req.user.role;
-	if (role === "user") {
+	if (role === "passenger" || role === "driver") {
 		const err = new Error("User Not Authorized");
 		err.status = 401;
 		throw err;
@@ -52,11 +52,11 @@ const isAuthorizedAdmin = asyncHandler(async (req, res, next) => {
 
 const isAuthorizedDriver = asyncHandler(async (req, res, next) => {
 	const role = req.user.role;
-	if (role === "user" || role === "admin") {
+	if (role === "passenger" || role === "admin") {
 		const err = new Error("User Not Authorized");
 		err.status = 401;
 		throw err;
-	} else if (role === "rider") {
+	} else if (role === "driver") {
 		next();
 	}
 });
