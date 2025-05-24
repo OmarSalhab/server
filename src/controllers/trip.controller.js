@@ -1,5 +1,7 @@
 const Trip = require("../models/Trip");
 const Route = require("../models/Route");
+const formatTrip = require("./utils/dateFormat");
+const User = require("../models/User");
 
 const createTrip = async (req, res) => {
 	const user = req.user;
@@ -20,12 +22,21 @@ const createTrip = async (req, res) => {
 				"departureTime, price, description, and availableSeats are required.",
 		});
 	}
-	const tripId = await Route.findOne({
-		from: user.route.from,
-		to: user.route.to,
-	});
+	let parsedDepartureTime = new Date(departureTime);
+	if (isNaN(parsedDepartureTime.getTime())) {
+		return res.status(400).json({
+			success: false,
+			message: "Invalid departureTime format. Use ISO 8601 string.",
+		});
+	}
+	const routeId = await Route.findOne(
+		{
+			_id: user.routeId,
+		},
+		{ _id: 1 }
+	);
 
-	if (!tripId) {
+	if (!routeId) {
 		return res.status(404).json({
 			success: false,
 			message: "Driver route not found in User collection.",
@@ -34,10 +45,8 @@ const createTrip = async (req, res) => {
 
 	const newTrip = new Trip({
 		driverId: user._id,
-		tripId,
-		route: user.route,
-		departureTime,
-		dateOfTrip,
+		routeId,
+		departureTime: parsedDepartureTime,
 		price: Number(price),
 		description,
 		availableSeats: Number(availableSeats),
@@ -46,23 +55,22 @@ const createTrip = async (req, res) => {
 
 	await newTrip.save();
 
-	res.status(201).json({ success: true, data: newTrip });
+	res.status(201).json({ success: true, data: formatTrip(newTrip) });
 };
 
 const getAvailableTrips = async (req, res) => {
-	// Get passenger's route preference from User model
-	const passenger = await User.findById(req.user.id);
+	const user = await User.findById(req.user.id);
 
-	// Find active rides matching passenger's route
 	const availableRides = await Trip.find({
-		route: passenger.route,
+		routeId: user.routeId,
 		status: "active",
 		availableSeats: { $gt: 0 },
-	}).populate("driver", "name phone");
+	}).populate("driverId", "name phone");
 
+	const formattedRides = availableRides.map(formatTrip);
 	res.status(200).json({
 		success: true,
-		data: availableRides,
+		data: formattedRides,
 	});
 };
 
@@ -80,18 +88,18 @@ const joinTrip = async (req, res) => {
 			});
 		}
 
-		if (trip.availableSeats < requestedSeats) {
+		if (trip.availableSeats < Number(requestedSeats)) {
 			return res.status(400).json({
 				success: false,
 				message: "Not enough seats available",
 			});
 		}
 		// Add passenger to ride
-		trip.passengers.push({
-			user: req.user.id,
+		trip.joinedPassengers.push({
+			passenger: req.user.id,
 			requestedSeats,
-			status: "pending",
 		});
+		trip.availableSeats += requestedSeats;
 
 		await trip.save();
 

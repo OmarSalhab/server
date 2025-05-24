@@ -4,16 +4,16 @@ const globalAsyncErrorHandler = (err, req, res, next) => {
 			.status(400)
 			.json({ success: false, message: "Email already exists" });
 	}
-
+	
+	if (err.name === "CastError") {
+			return res.status(400).json({ success: false, message: "Invalid ID" });
+		}
 	if (err.statusCode) {
 		return res
 			.status(err.statusCode)
 			.json({ success: false, message: err.message });
 	}
 
-	if (err.name === "CastError") {
-            return res.status(400).json({ success: false, message: "Invalid ID" });
-        }
 	//default fallback
 	res
 		.status(500)

@@ -8,9 +8,9 @@ const signupDriver = async (req, res) => {
 	const {
 		name,
 		phone,
-		passwordHash,
+		password,
 		gender,
-		route,
+		routeId,
 		carModel,
 		nationalId,
 		imageUrl,
@@ -24,9 +24,9 @@ const signupDriver = async (req, res) => {
 		role: "driver",
 		name,
 		phone,
-		passwordHash,
+		passwordHash: password,
 		gender,
-		route,
+		routeId,
 		carModel,
 		nationalId,
 		imageUrl,
@@ -41,7 +41,7 @@ const signupDriver = async (req, res) => {
 };
 
 const signupPassenger = async (req, res) => {
-	const { name, phone, passwordHash, gender, route } = req.body;
+	const { name, phone, password, gender, routeId } = req.body;
 
 	const exists = await User.findOne({ phone });
 	if (exists)
@@ -51,9 +51,9 @@ const signupPassenger = async (req, res) => {
 		role: "passenger",
 		name,
 		phone,
-		passwordHash,
+		passwordHash: password,
 		gender,
-		route,
+		routeId,
 		isApproved: true, // Not needed but for uniformity
 	});
 
@@ -62,14 +62,14 @@ const signupPassenger = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-	const { phone, passwordHash } = req.body;
+	const { phone, password } = req.body;
 	const user = await User.findOne({ phone: phone });
 	if (!user) {
 		const err = new Error("User not found, Faild to login");
 		err.statusCode = 404;
 		throw err;
 	}
-	const isMatch = await bcrypt.compare(passwordHash, user.passwordHash);
+	const isMatch = await bcrypt.compare(password, user.passwordHash);
 	if (!isMatch) {
 		{
 			const err = new Error("Invalid Password");

@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
 
+const joinedPassengerSchema = new mongoose.Schema(
+	{
+		passenger: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+		requestedSeats: { type: Number, required: true },
+	},
+	{ _id: false }
+);
+
 const tripSchema = new mongoose.Schema({
 	driverId: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -11,7 +19,7 @@ const tripSchema = new mongoose.Schema({
 		ref: "Route",
 		required: true,
 	},
-	
+
 	departureTime: { type: Date, required: true },
 	price: { type: Number, required: true },
 	description: String,
@@ -26,7 +34,7 @@ const tripSchema = new mongoose.Schema({
 		enum: ["active", "completed", "cancelled"],
 		default: "active",
 	},
-	joinedPassengers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+	joinedPassengers: [joinedPassengerSchema],
 	createdAt: { type: Date, default: Date.now },
 });
 

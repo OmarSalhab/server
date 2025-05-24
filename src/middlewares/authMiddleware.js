@@ -50,6 +50,17 @@ const isAuthorizedAdmin = asyncHandler(async (req, res, next) => {
 	}
 });
 
+const isPassenger = asyncHandler(async (req, res, next) => {
+	const role = req.user.role;
+	if (role === "admin" || role === "driver") {
+		const err = new Error("User Not Authorized");
+		err.status = 401;
+		throw err;
+	} else if (role === "passenger") {
+		next();
+	}
+});
+
 const isAuthorizedDriver = asyncHandler(async (req, res, next) => {
 	const role = req.user.role;
 	if (role === "passenger" || role === "admin") {
@@ -65,5 +76,6 @@ module.exports = {
 	generateToken,
 	protect,
 	isAuthorizedAdmin,
+	isPassenger,
 	isAuthorizedDriver,
 };

@@ -44,7 +44,7 @@ const nameValidator = () => {
 };
 
 const passwordValidator = () => {
-	return body("passwordHash")
+	return body("password")
 		.isLength({ min: 6 })
 		.withMessage("Password must be at least 6 characters long")
 		.matches(/[A-Z]/)

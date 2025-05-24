@@ -4,17 +4,20 @@ const {
 	createTrip,
 	getAvailableTrips,
 	joinTrip,
+	exitTrip,
 } = require("../controllers/trip.controller");
 const {
 	protect,
 	isAuthorizedDriver,
+	isPassenger,
 } = require("../middlewares/authMiddleware");
 const asyncHandler = require("express-async-handler");
 
-//Passenger Queries
 router.get("/available", protect, asyncHandler(getAvailableTrips));
 
-router.post("/join/:tripId", protect, asyncHandler(joinTrip));
+//Passenger Queries
+router.post("/join/:tripId", protect, isPassenger, asyncHandler(joinTrip));
+router.post("/exit/:tripId", protect, isPassenger, asyncHandler(exitTrip));
 
 //Driver Queries
 router.post("/", protect, isAuthorizedDriver, asyncHandler(createTrip));
