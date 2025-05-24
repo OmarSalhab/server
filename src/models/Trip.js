@@ -6,15 +6,12 @@ const tripSchema = new mongoose.Schema({
 		ref: "User",
 		required: true,
 	},
-	tripId: {
+	routeId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Route",
 		required: true,
 	},
-	route: {
-		from: { type: String, required: true },
-		to: { type: String, required: true },
-	},
+	
 	departureTime: { type: Date, required: true },
 	price: { type: Number, required: true },
 	description: String,

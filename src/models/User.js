@@ -8,9 +8,10 @@ const userSchema = new mongoose.Schema(
 		phone: { type: String, required: true, unique: true },
 		passwordHash: { type: String, required: true },
 		gender: { type: String, enum: ["male", "female"], required: true },
-		route: {
-			from: { type: String, required: true },
-			to: { type: String, required: true },
+		routeId: {
+			type:mongoose.Schema.Types.ObjectId,
+			ref: "Route",
+			required: true,
 		},
 		rating: { type: Number, default: 0 },
 		ratingsCount: { type: Number, default: 0 },
