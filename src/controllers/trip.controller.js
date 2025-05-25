@@ -275,12 +275,10 @@ const ratePassenger = async (req, res) => {
 
 		// Check if the current user is the driver of the trip
 		if (trip.driverId.toString() !== driverId) {
-			return res
-				.status(403)
-				.json({
-					success: false,
-					message: "Only the driver can rate passengers",
-				});
+			return res.status(403).json({
+				success: false,
+				message: "Only the driver can rate passengers",
+			});
 		}
 
 		// Prevent the passenger from rating themselves
@@ -295,12 +293,10 @@ const ratePassenger = async (req, res) => {
 			(p) => p.passenger.toString() === userId
 		);
 		if (!passengerInTrip) {
-			return res
-				.status(400)
-				.json({
-					success: false,
-					message: "Passenger was not part of this trip",
-				});
+			return res.status(400).json({
+				success: false,
+				message: "Passenger was not part of this trip",
+			});
 		}
 
 		// Find the passenger user
