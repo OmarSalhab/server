@@ -94,18 +94,27 @@ const joinTrip = async (req, res) => {
 				message: "Not enough seats available",
 			});
 		}
-		// Add passenger to ride
+		const exists = trip.joinedPassengers.findIndex(
+			(p) => p.passenger.toString() === req.user.id
+		);
+		if (exists !== -1) {
+			return res.status(400).json({
+				success: false,
+				message: "the passenger already exists",
+			});
+		}
+
 		trip.joinedPassengers.push({
 			passenger: req.user.id,
 			requestedSeats,
 		});
-		trip.availableSeats += requestedSeats;
+		trip.availableSeats -= Number(requestedSeats);
 
 		await trip.save();
 
 		res.status(200).json({
 			success: true,
-			message: "Join request sent successfully",
+			message: "Joinedsuccessfully",
 		});
 	} catch (error) {
 		res.status(500).json({
@@ -114,8 +123,80 @@ const joinTrip = async (req, res) => {
 		});
 	}
 };
+
+const exitTrip = async (req, res) => {
+	try {
+		const { tripId } = req.params;
+
+		const trip = await Trip.findById(tripId);
+
+		if (!trip) {
+			return res.status(404).json({
+				success: false,
+				message: "Ride not found",
+			});
+		}
+
+		const passengerIndex = trip.joinedPassengers.findIndex(
+			(p) => p.passenger.toString() === req.user.id
+		);
+
+		if (passengerIndex === -1) {
+			return res.status(400).json({
+				success: false,
+				message: "No passenger with this id in this trip",
+			});
+		}
+
+		const requestedSeats = trip.joinedPassengers[passengerIndex].requestedSeats;
+
+		trip.joinedPassengers.splice(passengerIndex, 1);
+
+		trip.availableSeats += Number(requestedSeats);
+
+		await trip.save();
+
+		res.status(200).json({
+			success: true,
+			message: "You have exited the trip successfully",
+		});
+	} catch (error) {
+		res.status(500).json({
+			success: false,
+			message: "Error joining ride",
+		});
+	}
+};
+
+const kickPassenger = async (req, res) => {
+	const { passengerId } = req.params;
+	const { id } = req.user;
+	const trip = await Trip.findOne({ driverId: id });
+	if (!trip) {
+		return res.json({ success: false, message: "there is no trip" });
+	}
+	const passengerIndex = trip.joinedPassengers.findIndex(
+		(p) => p.passenger.toString() === passengerId
+	);
+	if (passengerIndex === -1) {
+		return res.json({
+			success: false,
+			message: "there is no passenger in the trip",
+		});
+	}
+	trip.joinedPassengers.splice(passengerIndex, 1);
+
+	await trip.save();
+	res.status(200).json({
+		success: true,
+		message: "You kicked the user successfully",
+		data: trip,
+	});
+};
 module.exports = {
 	createTrip,
 	getAvailableTrips,
+	exitTrip,
+	kickPassenger,
 	joinTrip,
 };
