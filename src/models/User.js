@@ -1,6 +1,24 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+const ratingSchema = new mongoose.Schema(
+	{
+		fromUserId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			required: true,
+		},
+		tripId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Trip",
+			required: true,
+		},
+		stars: { type: Number, min: 1, max: 5, required: true },
+		createdAt: { type: Date, default: Date.now },
+	},
+	{ _id: false }
+);
+
 const userSchema = new mongoose.Schema(
 	{
 		role: { type: String, enum: ["driver", "passenger"], required: true },
@@ -13,8 +31,9 @@ const userSchema = new mongoose.Schema(
 			ref: "Route",
 			required: true,
 		},
-		rating: { type: Number, default: 0 },
+		rating: [ratingSchema],
 		ratingsCount: { type: Number, default: 0 },
+		ratingValue:{type:Number, default:0},
 		createdAt: { type: Date, default: Date.now },
 		isApproved: { type: Boolean, default: false },
 		// only for drivers

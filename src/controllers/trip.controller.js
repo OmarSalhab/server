@@ -193,10 +193,171 @@ const kickPassenger = async (req, res) => {
 		data: trip,
 	});
 };
+
+const rateDriver = async (req, res) => {
+	const { tripId, userId } = req.params;
+	const stars = Number(req.query.stars);
+	const fromUserId = req.user.id;
+
+	if (!stars || stars < 1 || stars > 5) {
+		return res
+			.status(400)
+			.json({ success: false, message: "Stars must be between 1 and 5" });
+	}
+	// Find the trip and driver
+	const trip = await Trip.findById(tripId);
+	if (!trip) {
+		return res.status(404).json({ success: false, message: "Trip not found" });
+	}
+	const driver = await User.findById(userId);
+	if (!driver) {
+		return res
+			.status(404)
+			.json({ success: false, message: "Driver not found" });
+	}
+	// Prevent duplicate rating for the same trip by the same passenger
+	const alreadyRated = driver.rating.some(
+		(r) =>
+			r.fromUserId.toString() === fromUserId && r.tripId.toString() === tripId
+	);
+	if (alreadyRated) {
+		return res.status(400).json({
+			success: false,
+			message: "You have already rated this driver for this trip",
+		});
+	}
+
+	// Add the rating
+	driver.rating.push({
+		fromUserId,
+		tripId,
+		stars,
+	});
+	driver.ratingsCount = (driver.ratingsCount || 0) + 1;
+
+	// Calculate new average rating
+	const totalStars = driver.rating.reduce((sum, r) => sum + r.stars, 0);
+	const avgRating = totalStars / driver.rating.length;
+	driver.ratingValue = avgRating; // Optionally store average
+
+	await driver.save();
+	res.status(200).json({
+		success: true,
+		message: "Driver rated successfully",
+		rating: {
+			stars,
+			fromUserId,
+			tripId,
+		},
+		average: avgRating,
+	});
+};
+
+const ratePassenger = async (req, res) => {
+	try {
+		const { tripId, userId } = req.params; // userId is the passenger to be rated
+		const stars = Number(req.query.stars);
+		const driverId = req.user.id;
+
+		if (!stars || stars < 1 || stars > 5) {
+			return res
+				.status(400)
+				.json({ success: false, message: "Stars must be between 1 and 5" });
+		}
+
+		// Find the trip
+		const trip = await Trip.findById(tripId);
+		if (!trip) {
+			return res
+				.status(404)
+				.json({ success: false, message: "Trip not found" });
+		}
+
+		// Check if the current user is the driver of the trip
+		if (trip.driverId.toString() !== driverId) {
+			return res
+				.status(403)
+				.json({
+					success: false,
+					message: "Only the driver can rate passengers",
+				});
+		}
+
+		// Prevent the passenger from rating themselves
+		if (userId === driverId) {
+			return res
+				.status(400)
+				.json({ success: false, message: "You cannot rate yourself" });
+		}
+
+		// Check if the passenger was part of the trip
+		const passengerInTrip = trip.joinedPassengers.some(
+			(p) => p.passenger.toString() === userId
+		);
+		if (!passengerInTrip) {
+			return res
+				.status(400)
+				.json({
+					success: false,
+					message: "Passenger was not part of this trip",
+				});
+		}
+
+		// Find the passenger user
+		const passenger = await User.findById(userId);
+		if (!passenger) {
+			return res
+				.status(404)
+				.json({ success: false, message: "Passenger not found" });
+		}
+
+		// Prevent duplicate rating for the same trip by the same driver
+		const alreadyRated = passenger.rating.some(
+			(r) =>
+				r.fromUserId.toString() === driverId && r.tripId.toString() === tripId
+		);
+		if (alreadyRated) {
+			return res.status(400).json({
+				success: false,
+				message: "You have already rated this passenger for this trip",
+			});
+		}
+
+		// Add the rating
+		passenger.rating.push({
+			fromUserId: driverId,
+			tripId,
+			stars,
+		});
+		passenger.ratingsCount = (passenger.ratingsCount || 0) + 1;
+
+		// Calculate new average rating
+		const totalStars = passenger.rating.reduce((sum, r) => sum + r.stars, 0);
+		const avgRating = totalStars / passenger.rating.length;
+		passenger.ratingValue = avgRating; // Optionally store average
+
+		await passenger.save();
+		res.status(200).json({
+			success: true,
+			message: "Passenger rated successfully",
+			rating: {
+				stars,
+				fromUserId: driverId,
+				tripId,
+			},
+			average: avgRating,
+		});
+	} catch (error) {
+		res.status(500).json({ success: false, message: "Error rating passenger" });
+	}
+};
+
 module.exports = {
 	createTrip,
 	getAvailableTrips,
 	exitTrip,
 	kickPassenger,
 	joinTrip,
+	rateDriver,
+	ratePassenger,
 };
