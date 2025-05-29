@@ -9,9 +9,17 @@ const generateToken = (user) => {
 		{ id: user._id,
 		role: user.role,
 		routeId: user.routeId },
-		process.env.JWT_SECRET,
-		{ expiresIn: "3d" }
+		process.env.ACCESS_SECRET,
+		{ expiresIn: "15s" }
 	);
+};
+
+const generateRefreshToken = (user) => {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.REFRESH_SECRET,
+    { expiresIn: "3m" }
+  );
 };
 
 const protect = async (req, res, next) => {
@@ -29,7 +37,7 @@ const protect = async (req, res, next) => {
 			.json({ success: false, message: "Not authorized, no token" });
 	}
 	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
 		req.user = await User.findById(decoded.id).select("-passwordHash");
 		next();
 	} catch (error) {
@@ -78,4 +86,5 @@ module.exports = {
 	isAuthorizedAdmin,
 	isPassenger,
 	isAuthorizedDriver,
+	generateRefreshToken,
 };

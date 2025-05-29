@@ -9,10 +9,12 @@ const routeRoutes = require("./src/routes/route.route.js");
 dotenv.config({ path: ".\\src\\config\\.env" });
 const PORT = process.env.PORT || 9000;
 const app = express();
+const cookieParser = require('cookie-parser');
 
-app.use(cors());
+app.use(cors({origin:"http://localhost:5173",credentials:true}));
 app.use(express.json());
 
+app.use(cookieParser());
 app.use("/api/trips", tripRoutes);
 app.use("/api/routes", routeRoutes);
 app.use("/api/users", userRoutes);

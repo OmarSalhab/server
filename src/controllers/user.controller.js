@@ -1,9 +1,12 @@
 const User = require("../models/User");
-const { generateToken } = require("../middlewares/authMiddleware");
+const {
+	generateToken,
+	generateRefreshToken,
+} = require("../middlewares/authMiddleware");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 dotenv.config({ path: "..\\config\\.env" });
-
+const jwt = require("jsonwebtoken");
 const signupDriver = async (req, res) => {
 	const {
 		name,
@@ -65,32 +68,79 @@ const loginUser = async (req, res) => {
 	const { phone, password } = req.body;
 	const user = await User.findOne({ phone: phone });
 	if (!user) {
-		const err = new Error("User not found, Faild to login");
-		err.statusCode = 404;
-		throw err;
+		return res.status(404).json({ msg: "User not found, Faild to login" });
 	}
 	const isMatch = await bcrypt.compare(password, user.passwordHash);
 	if (!isMatch) {
 		{
-			const err = new Error("Invalid Password");
-			err.statusCode = 401;
-			throw err;
+			return res.status(401).json({ msg: "Invalid Password" });
 		}
 	}
 	if (user.role === "driver" && !user.isApproved) {
-		return res.status(403).json({ message: "Driver not yet approved" });
+		return res.status(403).json({ msg: "Driver not yet approved" });
 	}
 	const token = generateToken(user);
+	const refreshToken = generateRefreshToken(user);
+
+	// Send refresh token as httpOnly cookie
+	res.cookie("refreshToken", refreshToken, {
+		httpOnly: true,
+		secure: false,
+		sameSite: "none",
+		maxAge: 3 * 60 * 1000, // 7 days
+	});
+
 	return res.status(200).json({
 		token,
 		user: {
-			id: user._id,
+			_id: user._id,
 			name: user.name,
-			role: user.role,
 			phone: user.phone,
-			route: user.route,
+			gender: user.gender,
+			routeId: user.route,
+			ratingValue: user.ratingValue,
+			role: user.role,
+			createdAt: user.createdAt,
 		},
 	});
+};
+
+const refreshToken = (req, res) => {
+	const refreshToken = req.cookies.refreshToken;
+
+	if (!refreshToken) return res.status(401).json({ msg: "No refresh token" });
+
+	jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, user) => {
+		if (err) return res.status(403).json({ msg: "Invalid refresh token" });
+		const accessToken = generateToken(user);
+		res.json({ accessToken, user });
+	});
+};
+
+const logout = (req, res) => {
+	const refreshToken = req.cookies.refreshToken;
+	if (!refreshToken)
+		return res.status(204).json({ message: "No cookies content" });
+	res.clearCookie("refreshToken", {
+		httpOnly: true,
+		secure: false,
+		sameSite: "none",
+	});
+	res.json({ message: "Cookie cleared" });
+};
+
+const userInfo = async (req, res) => {
+	const userId = req.user.id;
+	const userDocument = await User.findById(userId, {
+		passwordHash: 0,
+		isApproved: 0,
+		updatedAt: 0,
+		__v: 0,
+		rating: 0,
+		ratingsCount: 0,
+	});
+	if (!userDocument) return res.json({ message: "User not found." });
+	res.json(userDocument);
 };
 
 const updateUserRoutes = async (req, res) => {
@@ -118,10 +168,12 @@ const updateUserRoutes = async (req, res) => {
 		route: user.route,
 	});
 };
-
 module.exports = {
 	signupDriver,
 	signupPassenger,
 	loginUser,
 	updateUserRoutes,
+	userInfo,
+	refreshToken,
+	logout,
 };

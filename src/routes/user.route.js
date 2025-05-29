@@ -9,6 +9,9 @@ const {
 	signupPassenger,
 	loginUser,
 	updateUserRoutes,
+	userInfo,
+	refreshToken,
+	logout,
 } = require("../controllers/user.controller");
 
 const {
@@ -49,14 +52,13 @@ router.post(
 	asyncHandler(signupDriver)
 );
 
-router.post(
-	"/login",
-	phoneValidator(),
-	passwordValidator(),
-	validate,
-	asyncHandler(loginUser)
-);
+router.get("/refresh", asyncHandler(refreshToken));
 
+router.post("/login", phoneValidator(), validate, asyncHandler(loginUser));
+
+router.post("/logout", protect, asyncHandler(logout));
+
+router.get("/me", protect, asyncHandler(userInfo));
 router.put("/update-route", protect, asyncHandler(updateUserRoutes));
 
 // //User Role Queries
