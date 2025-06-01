@@ -8,7 +8,7 @@ const {
 	signupDriver,
 	signupPassenger,
 	loginUser,
-	updateUserRoutes,
+	updateUser,
 	userInfo,
 	refreshToken,
 	logout,
@@ -58,9 +58,16 @@ router.post("/login", phoneValidator(), validate, asyncHandler(loginUser));
 
 router.post("/logout", protect, asyncHandler(logout));
 
-router.get("/me", protect, asyncHandler(userInfo));
-router.put("/update-route", protect, asyncHandler(updateUserRoutes));
+router.put(
+	"/update:id",
+	protect,
+	nameValidator(),
+	phoneValidator(),
+	passwordValidator(),
+	asyncHandler(updateUser)
+);
 
+// router.get("/me", protect, asyncHandler(userInfo));
 // //User Role Queries
 // router.get("/:id/profile", protect, asyncHandler(getUserById));
 // router.get("/:id/name", protect, asyncHandler(getUserName));

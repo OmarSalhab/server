@@ -8,7 +8,7 @@ const generateToken = (user) => {
 	return jwt.sign(
 		{ id: user._id,
 		role: user.role,
-		routeId: user.routeId },
+		},
 		process.env.ACCESS_SECRET,
 		{ expiresIn: "15s" }
 	);
@@ -18,7 +18,7 @@ const generateRefreshToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role },
     process.env.REFRESH_SECRET,
-    { expiresIn: "3m" }
+    { expiresIn: "1h" }
   );
 };
 
@@ -34,7 +34,7 @@ const protect = async (req, res, next) => {
 	if (!token) {
 		return res
 			.status(401)
-			.json({ success: false, message: "Not authorized, no token" });
+			.json({ success: false, message: "Not authorized" });
 	}
 	try {
 		const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
@@ -42,8 +42,8 @@ const protect = async (req, res, next) => {
 		next();
 	} catch (error) {
 		return res
-			.status(401)
-			.json({ success: false, message: "Not authorized, token failed" });
+			.status(403)
+			.json({ success: false, message: "Not authorized" });
 	}
 };
 

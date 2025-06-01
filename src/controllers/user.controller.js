@@ -66,7 +66,10 @@ const signupPassenger = async (req, res) => {
 
 const loginUser = async (req, res) => {
 	const { phone, password } = req.body;
-	const user = await User.findOne({ phone: phone });
+	const user = await User.findOne({ phone: phone }).populate(
+		"routeId",
+		"roomName"
+	);
 	if (!user) {
 		return res.status(404).json({ msg: "User not found, Faild to login" });
 	}
@@ -85,9 +88,9 @@ const loginUser = async (req, res) => {
 	// Send refresh token as httpOnly cookie
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
+		sameSite: "Lax",
 		secure: false,
-		sameSite: "none",
-		maxAge: 3 * 60 * 1000, // 7 days
+		maxAge: 60 * 60 * 1000, // 7 days
 	});
 
 	return res.status(200).json({
@@ -97,8 +100,9 @@ const loginUser = async (req, res) => {
 			name: user.name,
 			phone: user.phone,
 			gender: user.gender,
-			routeId: user.route,
+			routeId: user.routeId,
 			ratingValue: user.ratingValue,
+			ratingsCount: user.ratingsCount,
 			role: user.role,
 			createdAt: user.createdAt,
 		},
@@ -110,9 +114,29 @@ const refreshToken = (req, res) => {
 
 	if (!refreshToken) return res.status(401).json({ msg: "No refresh token" });
 
-	jwt.verify(refreshToken, process.env.REFRESH_SECRET, (err, user) => {
+	jwt.verify(refreshToken, process.env.REFRESH_SECRET, async (err, userJwt) => {
+		const user = await User.find(
+			{ _id: userJwt.id },
+			{
+				__v: 0,
+				passwordHash: 0,
+				rating: 0,
+				isApproved: 0,
+				updatedAt: 0,
+				carModel: 0,
+				nationalId: 0,
+				imageUrl: 0,
+			}
+		).populate("routeId", "roomName");
+
+		
+
 		if (err) return res.status(403).json({ msg: "Invalid refresh token" });
-		const accessToken = generateToken(user);
+		const accessToken = jwt.sign(
+			{ id: userJwt.id, role: userJwt.role },
+			process.env.ACCESS_SECRET,
+			{ expiresIn: "15s" }
+		);
 		res.json({ accessToken, user });
 	});
 };
@@ -123,57 +147,47 @@ const logout = (req, res) => {
 		return res.status(204).json({ message: "No cookies content" });
 	res.clearCookie("refreshToken", {
 		httpOnly: true,
+		sameSite: "Lax",
 		secure: false,
-		sameSite: "none",
 	});
 	res.json({ message: "Cookie cleared" });
 };
 
-const userInfo = async (req, res) => {
-	const userId = req.user.id;
-	const userDocument = await User.findById(userId, {
-		passwordHash: 0,
-		isApproved: 0,
-		updatedAt: 0,
-		__v: 0,
-		rating: 0,
-		ratingsCount: 0,
-	});
-	if (!userDocument) return res.json({ message: "User not found." });
-	res.json(userDocument);
-};
 
-const updateUserRoutes = async (req, res) => {
-	const { from, to } = req.body;
-	const userId = req.user.id;
-
-	if (!from || !to) {
-		return res
-			.status(400)
-			.json({ message: 'Both "from" and "to" are required' });
-	}
-
-	const user = await User.findByIdAndUpdate(
-		userId,
-		{ route: { from, to } },
-		{ new: true }
-	);
-
+const updateUser = async (req, res) => {
+	const { name, password, routeId, gender } = req.body;
+	const { id: userId } = req.params;
+	const user = await User.findById(userId);
+	
 	if (!user) {
 		return res.status(404).json({ message: "User not found" });
 	}
+	if (!name || !phone || !password || !routeId || !gender) {
+		return res
+			.status(400)
+			.json({ message: "bad request, some values are missing" });
+	}
 
+	user.name = name;
+	user.passwordHash =password;
+	user.routeId =routeId;
+	user.gender =gender;
+	user.updatedAt =Date.now();
+	
+	await user.save();
+
+	const updatedUser = await User.findById(userId).select("-passwordHash");
 	res.status(200).json({
-		message: "Route updated successfully",
-		route: user.route,
+		message: "user updated successfully",
+		user: updatedUser,
 	});
 };
 module.exports = {
 	signupDriver,
 	signupPassenger,
 	loginUser,
-	updateUserRoutes,
-	userInfo,
+	updateUser,
+
 	refreshToken,
 	logout,
 };
