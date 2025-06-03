@@ -10,6 +10,7 @@ const {
 	loginUser,
 	updateUser,
 	userInfo,
+	supaUpload,
 	refreshToken,
 	logout,
 } = require("../controllers/user.controller");
@@ -62,10 +63,10 @@ router.put(
 	"/update:id",
 	protect,
 	nameValidator(),
-	phoneValidator(),
 	passwordValidator(),
 	asyncHandler(updateUser)
 );
+router.post("/upload-to-supabase", asyncHandler(supaUpload));
 
 // router.get("/me", protect, asyncHandler(userInfo));
 // //User Role Queries

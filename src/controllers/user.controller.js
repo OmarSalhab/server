@@ -93,6 +93,8 @@ const loginUser = async (req, res) => {
 		maxAge: 60 * 60 * 1000, // 7 days
 	});
 
+
+	
 	return res.status(200).json({
 		token,
 		user: {
@@ -129,8 +131,6 @@ const refreshToken = (req, res) => {
 			}
 		).populate("routeId", "roomName");
 
-		
-
 		if (err) return res.status(403).json({ msg: "Invalid refresh token" });
 		const accessToken = jwt.sign(
 			{ id: userJwt.id, role: userJwt.role },
@@ -153,41 +153,64 @@ const logout = (req, res) => {
 	res.json({ message: "Cookie cleared" });
 };
 
-
 const updateUser = async (req, res) => {
 	const { name, password, routeId, gender } = req.body;
 	const { id: userId } = req.params;
 	const user = await User.findById(userId);
-	
+
 	if (!user) {
 		return res.status(404).json({ message: "User not found" });
 	}
-	if (!name || !phone || !password || !routeId || !gender) {
+	if (!name || !password || !routeId || !gender) {
 		return res
 			.status(400)
 			.json({ message: "bad request, some values are missing" });
 	}
 
 	user.name = name;
-	user.passwordHash =password;
-	user.routeId =routeId;
-	user.gender =gender;
-	user.updatedAt =Date.now();
-	
+	user.passwordHash = password;
+	user.routeId = routeId;
+	user.gender = gender;
+	user.updatedAt = Date.now();
+
 	await user.save();
 
-	const updatedUser = await User.findById(userId).select("-passwordHash");
+	const updatedUser = await User.findById(userId)
+		.select(
+			"-passwordHash -rating -__v -updatedAt -isApproved -carModel -nationalId -imageUrl"
+		)
+		.populate("routeId", "roomName");
 	res.status(200).json({
 		message: "user updated successfully",
 		user: updatedUser,
 	});
+};
+
+// services.
+const supaUpload = async (req, res) => {
+	
+	
+
+	// const supabaseUrl = import.meta.env.VITE_SUPA_URL;
+	// const supabaseKey = import.meta.env.VITE_SUPA_KEY;
+
+	// const supabase = createClient(supabaseUrl, supabaseKey);
+	
+	const {formData} = req.body;
+	
+	if(!formData) return res.status(401).json({success:false,message:"include the formData"});
+	
+	
+	
+	
+
 };
 module.exports = {
 	signupDriver,
 	signupPassenger,
 	loginUser,
 	updateUser,
-
+	supaUpload,
 	refreshToken,
 	logout,
 };
