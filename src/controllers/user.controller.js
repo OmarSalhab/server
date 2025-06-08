@@ -19,7 +19,8 @@ const signupDriver = async (req, res) => {
 		imageUrl,
 	} = req.body;
 
-	const exists = await User.findOne({ phone });
+	const exists = await  User.findOne({ phone });
+	
 	if (exists)
 		return res.status(400).json({ message: "Phone already registered" });
 	// implement otp email verfiyng
@@ -73,7 +74,7 @@ const loginUser = async (req, res) => {
 	if (!user) {
 		return res.status(404).json({ msg: "User not found, Faild to login" });
 	}
-	const isMatch = await bcrypt.compare(password, user.passwordHash);
+	const isMatch = await bcrypt.compare(password, user.passwordHash)
 	if (!isMatch) {
 		{
 			return res.status(401).json({ msg: "Invalid Password" });
@@ -135,7 +136,7 @@ const refreshToken = (req, res) => {
 		const accessToken = jwt.sign(
 			{ id: userJwt.id, role: userJwt.role },
 			process.env.ACCESS_SECRET,
-			{ expiresIn: "15s" }
+			{ expiresIn: "15m" }
 		);
 		res.json({ accessToken, user });
 	});

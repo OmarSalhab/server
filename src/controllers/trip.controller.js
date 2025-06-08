@@ -3,6 +3,7 @@ const Route = require("../models/Route");
 const formatTrip = require("./utils/dateFormat");
 const User = require("../models/User");
 
+//driver 
 const createTrip = async (req, res) => {
 	const user = req.user;
 
@@ -65,9 +66,33 @@ const getAvailableTrips = async (req, res) => {
 		routeId: user.routeId,
 		status: "active",
 		availableSeats: { $gt: 0 },
-	}).populate("driverId", "name phone");
+	}).populate("driverId", "name phone gender ratingValue").populate("routeId","to from roomName");
 
 	const formattedRides = availableRides.map(formatTrip);
+	// console.log(formattedRides);
+	
+	res.status(200).json({
+		success: true,
+		data: formattedRides,
+	});
+};
+
+const getMyTrips = async (req, res) => {
+	const user = await User.findById(req.user.id);
+
+	if(!user) return res.status(401).json({
+		success: false,
+		message: "new user found",
+	});
+	const myTrips = await Trip.find({
+		driverId: user._id,
+		status: "active",
+		availableSeats: { $gt: 0 },
+	}).populate("driverId", "name phone gender ratingValue").populate("routeId","to from roomName");
+
+	const formattedRides = myTrips.map(formatTrip);
+	// console.log(formattedRides);
+	
 	res.status(200).json({
 		success: true,
 		data: formattedRides,
@@ -354,6 +379,7 @@ module.exports = {
 	exitTrip,
 	kickPassenger,
 	joinTrip,
+	getMyTrips,
 	rateDriver,
 	ratePassenger,
 };

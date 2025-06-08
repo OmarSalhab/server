@@ -10,7 +10,7 @@ const generateToken = (user) => {
 		role: user.role,
 		},
 		process.env.ACCESS_SECRET,
-		{ expiresIn: "15s" }
+		{ expiresIn: "15m" }
 	);
 };
 

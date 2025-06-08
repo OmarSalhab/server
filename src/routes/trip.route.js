@@ -7,6 +7,7 @@ const {
 	exitTrip,
 	kickPassenger,
 	rateDriver,
+	getMyTrips,
 	ratePassenger,
 } = require("../controllers/trip.controller");
 const {
@@ -31,6 +32,7 @@ router.post(
 router.delete("/exit/:tripId", protect, isPassenger, asyncHandler(exitTrip));
 
 //Driver Queries
+router.get("/me", protect, isAuthorizedDriver, asyncHandler(getMyTrips));
 router.post("/", protect, isAuthorizedDriver, asyncHandler(createTrip));
 router.post(
 	"/rate/:tripId/:userId",
