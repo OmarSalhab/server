@@ -7,6 +7,7 @@ const tripRoutes = require("./src/routes/trip.route.js");
 const userRoutes = require("./src/routes/user.route.js");
 const routeRoutes = require("./src/routes/route.route.js");
 const globalChatRoutes = require("./src/routes/globalChat.route.js");
+const tripChatRoutes = require("./src/routes/tripChat.route.js")
 
 dotenv.config({ path: ".\\src\\config\\.env" });
 const PORT = process.env.PORT || 9001;
@@ -28,6 +29,7 @@ app.use("/api/trips", tripRoutes);
 app.use("/api/routes", routeRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/global-chat", globalChatRoutes);
+app.use("/api/trip-chat", tripChatRoutes);
 app.use(globalAsyncErrorHandler);
 
 // Error handling

@@ -56,12 +56,12 @@ const createTrip = async (req, res) => {
 
 	await newTrip.save();
 
-	const trp = await Trip.findById(newTrip._id )
+	const trp = await Trip.findById(newTrip._id)
 		.populate("driverId", "name phone gender ratingValue")
 		.populate("routeId", "to from roomName");
-		
-	 getIO().to(routeId._id.toString()).emit("new_ride", formatTrip(trp));
-	
+
+	getIO().to(routeId._id.toString()).emit("new_ride", formatTrip(trp));
+
 	res.status(201).json({ success: true, data: formatTrip(trp) });
 };
 

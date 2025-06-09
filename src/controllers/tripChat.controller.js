@@ -1,11 +1,10 @@
-const RouteChatMessage = require("../models/RouteChatMessage");
+const TripChatMessage = require("../models/TripChatMessage");
 const User = require("../models/User");
 
-
 const getChat = async (req, res) => {
-	const routeId = req.user.routeId;
-	if (!routeId) return res.json({ message: "bad request" });
-	const chats = await RouteChatMessage.find({ routeId: routeId._id }).populate(
+	const { tripId } = req.params;
+	if (!tripId) return res.json({ message: "bad request" });
+	const chats = await TripChatMessage.find({ tripId: tripId }).populate(
 		"senderId",
 		"name role"
 	);
@@ -45,9 +44,4 @@ const getChat = async (req, res) => {
 	res.send({ success: true, data: formattedChats });
 };
 
-const getMembers = async (req, res) => {
-	const members = await User.find({ routeId: req.user.routeId });
-
-	res.json({ success: true, data: members.length });
-};
-module.exports = { getChat, getMembers };
+module.exports = { getChat };

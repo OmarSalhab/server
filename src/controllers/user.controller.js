@@ -19,8 +19,8 @@ const signupDriver = async (req, res) => {
 		imageUrl,
 	} = req.body;
 
-	const exists = await  User.findOne({ phone });
-	
+	const exists = await User.findOne({ phone });
+
 	if (exists)
 		return res.status(400).json({ message: "Phone already registered" });
 	// implement otp email verfiyng
@@ -74,7 +74,7 @@ const loginUser = async (req, res) => {
 	if (!user) {
 		return res.status(404).json({ msg: "User not found, Faild to login" });
 	}
-	const isMatch = await bcrypt.compare(password, user.passwordHash)
+	const isMatch = await bcrypt.compare(password, user.passwordHash);
 	if (!isMatch) {
 		{
 			return res.status(401).json({ msg: "Invalid Password" });
@@ -94,8 +94,6 @@ const loginUser = async (req, res) => {
 		maxAge: 60 * 60 * 1000, // 7 days
 	});
 
-
-	
 	return res.status(200).json({
 		token,
 		user: {
@@ -189,22 +187,17 @@ const updateUser = async (req, res) => {
 
 // services.
 const supaUpload = async (req, res) => {
-	
-	
-
 	// const supabaseUrl = import.meta.env.VITE_SUPA_URL;
 	// const supabaseKey = import.meta.env.VITE_SUPA_KEY;
 
 	// const supabase = createClient(supabaseUrl, supabaseKey);
-	
-	const {formData} = req.body;
-	
-	if(!formData) return res.status(401).json({success:false,message:"include the formData"});
-	
-	
-	
-	
 
+	const { formData } = req.body;
+
+	if (!formData)
+		return res
+			.status(401)
+			.json({ success: false, message: "include the formData" });
 };
 module.exports = {
 	signupDriver,
