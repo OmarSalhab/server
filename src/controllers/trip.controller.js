@@ -2,8 +2,8 @@ const Trip = require("../models/Trip");
 const Route = require("../models/Route");
 const formatTrip = require("./utils/dateFormat");
 const User = require("../models/User");
-
-//driver 
+const { getIO } = require("../config/socket");
+//driver
 const createTrip = async (req, res) => {
 	const user = req.user;
 
@@ -56,7 +56,13 @@ const createTrip = async (req, res) => {
 
 	await newTrip.save();
 
-	res.status(201).json({ success: true, data: formatTrip(newTrip) });
+	const trp = await Trip.findById(newTrip._id )
+		.populate("driverId", "name phone gender ratingValue")
+		.populate("routeId", "to from roomName");
+		
+	 getIO().to(routeId._id.toString()).emit("new_ride", formatTrip(trp));
+	
+	res.status(201).json({ success: true, data: formatTrip(trp) });
 };
 
 const getAvailableTrips = async (req, res) => {
@@ -66,11 +72,13 @@ const getAvailableTrips = async (req, res) => {
 		routeId: user.routeId,
 		status: "active",
 		availableSeats: { $gt: 0 },
-	}).populate("driverId", "name phone gender ratingValue").populate("routeId","to from roomName");
+	})
+		.populate("driverId", "name phone gender ratingValue")
+		.populate("routeId", "to from roomName");
 
 	const formattedRides = availableRides.map(formatTrip);
 	// console.log(formattedRides);
-	
+
 	res.status(200).json({
 		success: true,
 		data: formattedRides,
@@ -80,19 +88,22 @@ const getAvailableTrips = async (req, res) => {
 const getMyTrips = async (req, res) => {
 	const user = await User.findById(req.user.id);
 
-	if(!user) return res.status(401).json({
-		success: false,
-		message: "new user found",
-	});
+	if (!user)
+		return res.status(401).json({
+			success: false,
+			message: "new user found",
+		});
 	const myTrips = await Trip.find({
 		driverId: user._id,
 		status: "active",
 		availableSeats: { $gt: 0 },
-	}).populate("driverId", "name phone gender ratingValue").populate("routeId","to from roomName");
+	})
+		.populate("driverId", "name phone gender ratingValue")
+		.populate("routeId", "to from roomName");
 
 	const formattedRides = myTrips.map(formatTrip);
 	// console.log(formattedRides);
-	
+
 	res.status(200).json({
 		success: true,
 		data: formattedRides,

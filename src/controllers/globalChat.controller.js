@@ -8,19 +8,39 @@ const getChat = async (req, res) => {
 		"name role"
 	);
 
-	const formattedChats = chats.map((chat) => ({
-		id: chat._id,
-		text: chat.content,
-		userId: chat.senderId._id,
-		user: chat.senderId.name,
-		type: chat.senderId.role,
-		time: new Date(chat.createdAt).toLocaleTimeString([], {
-			month: "2-digit",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
-		}),
-	}));
+	const formattedChats = chats.map((chat) => {
+		
+		if (chat.replyToMessageId) {
+			return {
+				id: chat._id,
+				text: chat.content,
+				userId: chat.senderId._id,
+				reply: chat.replyToMessageId,
+				user: chat.senderId.name,
+				type: chat.senderId.role,
+				time: new Date(chat.createdAt).toLocaleTimeString([], {
+					month: "2-digit",
+					day: "2-digit",
+					hour: "2-digit",
+					minute: "2-digit",
+				}),
+			};
+		} else {
+			return {
+				id: chat._id,
+				text: chat.content,
+				userId: chat.senderId._id,
+				user: chat.senderId.name,
+				type: chat.senderId.role,
+				time: new Date(chat.createdAt).toLocaleTimeString([], {
+					month: "2-digit",
+					day: "2-digit",
+					hour: "2-digit",
+					minute: "2-digit",
+				}),
+			};
+		}
+	});
 	res.send({ success: true, data: formattedChats });
 };
 
