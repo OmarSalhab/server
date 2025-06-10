@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const joinedPassengerSchema = new mongoose.Schema(
 	{
 		passenger: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-		requestedSeats: { type: Number, required: true },
+		seatId: { type: Number, required: true },
 	},
 	{ _id: false }
 );

@@ -1,7 +1,7 @@
 // server/src/config/socket.js
 const { Server } = require("socket.io");
 const RouteChatMessage = require("../models/RouteChatMessage.js");
-const TripChatMessage = require("../models/TripChatMessage.js")
+const TripChatMessage = require("../models/TripChatMessage.js");
 const User = require("../models/User.js");
 let io;
 
@@ -15,7 +15,7 @@ const initializeSocket = (server) => {
 	// Store active users and their rooms
 	const activeUsers = new Map();
 	const activeRoomUsers = new Map();
-	
+
 	io.on("connection", (socket) => {
 		console.log("User connected:", socket.id);
 
@@ -188,6 +188,18 @@ const initializeSocket = (server) => {
 					`User ${socket.id} disconnected from route: ${routeId} ${usersInRoute}`
 				);
 				io.to(routeId).emit("memebers_count", usersInRoute);
+			}
+
+			const tripId = activeRoomUsers.get(socket.id);
+			if (tripId) {
+				activeRoomUsers.delete(socket.id);
+				const usersInRoom = Array.from(activeRoomUsers.values()).filter(
+					(id) => id === tripId
+				).length;
+				console.log(
+					`User ${socket.id} disconnected from room: ${tripId} ${usersInRoom}`
+				);
+				io.to(tripId).emit("room_memebers_count", usersInRoom);
 			}
 		});
 	});

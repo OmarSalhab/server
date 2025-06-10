@@ -18,6 +18,7 @@ const {
 const asyncHandler = require("express-async-handler");
 const { isCompleted } = require("../middlewares/ratingMiddleware");
 
+
 router.get("/available", protect, asyncHandler(getAvailableTrips));
 
 //Passenger Queries

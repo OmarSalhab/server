@@ -23,7 +23,7 @@ const signupDriver = async (req, res) => {
 
 	if (exists)
 		return res.status(400).json({ message: "Phone already registered" });
-	// implement otp email verfiyng
+	// implement otp email verfiyng in the future
 	const newDriver = new User({
 		role: "driver",
 		name,

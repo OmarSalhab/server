@@ -77,7 +77,6 @@ const getAvailableTrips = async (req, res) => {
 		.populate("routeId", "to from roomName");
 
 	const formattedRides = availableRides.map(formatTrip);
-	// console.log(formattedRides);
 
 	res.status(200).json({
 		success: true,
@@ -113,7 +112,7 @@ const getMyTrips = async (req, res) => {
 const joinTrip = async (req, res) => {
 	try {
 		const { tripId } = req.params;
-		const { requestedSeats } = req.body;
+		const { seatId } = req.body;
 
 		const trip = await Trip.findById(tripId);
 
@@ -124,7 +123,7 @@ const joinTrip = async (req, res) => {
 			});
 		}
 
-		if (trip.availableSeats < Number(requestedSeats)) {
+		if (trip.availableSeats < 1) {
 			return res.status(400).json({
 				success: false,
 				message: "Not enough seats available",
@@ -142,15 +141,15 @@ const joinTrip = async (req, res) => {
 
 		trip.joinedPassengers.push({
 			passenger: req.user.id,
-			requestedSeats,
+			seatId,
 		});
-		trip.availableSeats -= Number(requestedSeats);
+		trip.availableSeats -= 1;
 
 		await trip.save();
 
 		res.status(200).json({
 			success: true,
-			message: "Joinedsuccessfully",
+			message: "Joined successfully",
 		});
 	} catch (error) {
 		res.status(500).json({
