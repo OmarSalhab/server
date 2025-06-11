@@ -60,6 +60,8 @@ const isAuthorizedAdmin = asyncHandler(async (req, res, next) => {
 
 const isPassenger = asyncHandler(async (req, res, next) => {
 	const role = req.user.role;
+	console.log(role);
+	
 	if (role === "admin" || role === "driver") {
 		const err = new Error("User Not Authorized");
 		err.status = 401;

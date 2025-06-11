@@ -114,6 +114,8 @@ const joinTrip = async (req, res) => {
 		const { tripId } = req.params;
 		const { seatId } = req.body;
 
+		console.log(tripId, seatId);
+
 		const trip = await Trip.findById(tripId);
 
 		if (!trip) {
@@ -123,7 +125,7 @@ const joinTrip = async (req, res) => {
 			});
 		}
 
-		if (trip.availableSeats < 1) {
+		if (trip.joinedPassengers.length >= 4) {
 			return res.status(400).json({
 				success: false,
 				message: "Not enough seats available",
@@ -143,13 +145,18 @@ const joinTrip = async (req, res) => {
 			passenger: req.user.id,
 			seatId,
 		});
-		trip.availableSeats -= 1;
 
 		await trip.save();
+		getIO()
+			.to(req.user.routeId._id.toString())
+			.emit("passenger_joined", { tripId, seatId, passenger: req.user.id });
+		const trp = await Trip.find({ _id: tripId })
+			.populate("driverId", "name phone gender ratingValue")
+			.populate("routeId", "to from roomName");
 
 		res.status(200).json({
 			success: true,
-			message: "Joined successfully",
+			data: formatTrip(trp),
 		});
 	} catch (error) {
 		res.status(500).json({
