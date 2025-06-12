@@ -147,23 +147,52 @@ const joinTrip = async (req, res) => {
 		});
 
 		await trip.save();
-		getIO()
-			.to(req.user.routeId._id.toString())
-			.emit("passenger_joined", { tripId, seatId, passenger: req.user.id });
-		const trp = await Trip.find({ _id: tripId })
+		const trp = await Trip.findById(tripId)
 			.populate("driverId", "name phone gender ratingValue")
 			.populate("routeId", "to from roomName");
 
+		const formattedTrip = formatTrip(trp);
+		console.log([{ ...formattedTrip }]);
+
+		getIO()
+			.to(req.user.routeId._id.toString())
+			.emit("passenger_joined", {
+				tripId,
+				seatId,
+				passenger: req.user.id,
+				ride: [{ ...formattedTrip }],
+			});
+
 		res.status(200).json({
 			success: true,
-			data: formatTrip(trp),
+			message: "user joined successfully",
 		});
 	} catch (error) {
 		res.status(500).json({
 			success: false,
 			message: "Error joining ride",
+			error: error,
 		});
 	}
+};
+
+const getPassengers = async (req, res) => {
+	const { tripId } = req.params;
+	const { users } = req.body;
+	console.log(users, tripId);
+
+	if (!tripId)
+		return res.json({ success: false, message: "no trip with this Id" });
+
+	if (!users) return res.json({ success: true, data: users });
+
+	const usersInfoList = await Promise.all(users.map(async (user) => {
+		const userInfo = await User.findById(user,{name:1,gender:1,ratingValue:1});
+		return userInfo;
+	}))
+	console.log(usersInfoList);
+
+	res.status(200).json({ success: true, data: usersInfoList });
 };
 
 const exitTrip = async (req, res) => {
@@ -211,9 +240,9 @@ const exitTrip = async (req, res) => {
 };
 
 const kickPassenger = async (req, res) => {
-	const { passengerId } = req.params;
-	const { id } = req.user;
-	const trip = await Trip.findOne({ driverId: id });
+	const { passengerId,tripId } = req.params;
+	
+	const trip = await Trip.findById(tripId);
 	if (!trip) {
 		return res.json({ success: false, message: "there is no trip" });
 	}
@@ -398,5 +427,6 @@ module.exports = {
 	joinTrip,
 	getMyTrips,
 	rateDriver,
+	getPassengers,
 	ratePassenger,
 };
