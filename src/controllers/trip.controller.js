@@ -114,8 +114,6 @@ const joinTrip = async (req, res) => {
 		const { tripId } = req.params;
 		const { seatId } = req.body;
 
-		console.log(tripId, seatId);
-
 		const trip = await Trip.findById(tripId);
 
 		if (!trip) {
@@ -125,7 +123,7 @@ const joinTrip = async (req, res) => {
 			});
 		}
 
-		if (trip.joinedPassengers.length >= 4) {
+		if (trip.joinedPassengers.length >= Number(trip.availableSeats)) {
 			return res.status(400).json({
 				success: false,
 				message: "Not enough seats available",
@@ -179,7 +177,6 @@ const joinTrip = async (req, res) => {
 const getPassengers = async (req, res) => {
 	const { tripId } = req.params;
 	const { users } = req.body;
-	
 
 	if (!tripId)
 		return res.json({ success: false, message: "no trip with this Id" });
@@ -249,7 +246,7 @@ const kickPassenger = async (req, res) => {
 	const { passengerId, tripId } = req.params;
 
 	console.log(`tripId from the kick handler: ${tripId}`);
-	
+
 	const trip = await Trip.findById(tripId);
 	if (!trip) {
 		return res.json({ success: false, message: "there is no trip" });
@@ -273,26 +270,17 @@ const kickPassenger = async (req, res) => {
 
 	const formattedTrip = formatTrip(trp);
 
-
 	getIO()
-		.to(tripId.trim())
+		.to(req.user.routeId._id.toString())
 		.emit("room_passenger_kicked", {
 			tripId,
 			passenger: passengerId,
 			ride: [{ ...formattedTrip }],
 		});
-	// getIO()
-	// 	.to(req.user.routeId._id.toString())
-	// 	.emit("route_passenger_kicked", {
-	// 		tripId,
-	// 		passenger: passengerId,
-	// 		ride: [{ ...formattedTrip }],
-	// 	});
 
 	res.status(200).json({
 		success: true,
 		message: "You kicked the user successfully",
-		
 	});
 };
 
@@ -357,15 +345,11 @@ const rateDriver = async (req, res) => {
 
 const ratePassenger = async (req, res) => {
 	try {
-		const { tripId, userId } = req.params; // userId is the passenger to be rated
-		const stars = Number(req.query.stars);
-		const driverId = req.user.id;
+		const { tripId } = req.params;
+		const { ratings } = req.body;
+		const fromUserId = req.user.id;
 
-		if (!stars || stars < 1 || stars > 5) {
-			return res
-				.status(400)
-				.json({ success: false, message: "Stars must be between 1 and 5" });
-		}
+		console.log(tripId, ratings);
 
 		// Find the trip
 		const trip = await Trip.findById(tripId);
@@ -376,24 +360,28 @@ const ratePassenger = async (req, res) => {
 		}
 
 		// Check if the current user is the driver of the trip
-		if (trip.driverId.toString() !== driverId) {
+		if (trip.driverId.toString() !== fromUserId) {
 			return res.status(403).json({
 				success: false,
 				message: "Only the driver can rate passengers",
 			});
 		}
 
-		// Prevent the passenger from rating themselves
-		if (userId === driverId) {
-			return res
-				.status(400)
-				.json({ success: false, message: "You cannot rate yourself" });
-		}
+		// // Prevent the passenger from rating themselves
+		// if (userId === driverId) {
+		// 	return res
+		// 		.status(400)
+		// 		.json({ success: false, message: "You cannot rate yourself" });
+		// }
 
 		// Check if the passenger was part of the trip
-		const passengerInTrip = trip.joinedPassengers.some(
-			(p) => p.passenger.toString() === userId
+		const passengerInTrip = trip.joinedPassengers.some((p) =>
+			ratings.some(
+				(passenger) => passenger.id.toString() === p.passenger.toString()
+			)
 		);
+		console.log(passengerInTrip);
+
 		if (!passengerInTrip) {
 			return res.status(400).json({
 				success: false,
@@ -401,52 +389,94 @@ const ratePassenger = async (req, res) => {
 			});
 		}
 
-		// Find the passenger user
-		const passenger = await User.findById(userId);
-		if (!passenger) {
-			return res
-				.status(404)
-				.json({ success: false, message: "Passenger not found" });
-		}
+		// Fetch all passengers to be rated
+		const passengerIds = ratings.map((r) => r.id);
+		const passengers = await User.find({ _id: { $in: passengerIds } });
 
-		// Prevent duplicate rating for the same trip by the same driver
-		const alreadyRated = passenger.rating.some(
-			(r) =>
-				r.fromUserId.toString() === driverId && r.tripId.toString() === tripId
-		);
-		if (alreadyRated) {
-			return res.status(400).json({
-				success: false,
-				message: "You have already rated this passenger for this trip",
-			});
-		}
-
-		// Add the rating
-		passenger.rating.push({
-			fromUserId: driverId,
-			tripId,
-			stars,
-		});
-		passenger.ratingsCount = (passenger.ratingsCount || 0) + 1;
-
-		// Calculate new average rating
-		const totalStars = passenger.rating.reduce((sum, r) => sum + r.stars, 0);
-		const avgRating = totalStars / passenger.rating.length;
-		passenger.ratingValue = avgRating; // Optionally store average
-
-		await passenger.save();
-		res.status(200).json({
-			success: true,
-			message: "Passenger rated successfully",
-			rating: {
-				stars,
-				fromUserId: driverId,
+		// Prepare bulk operations
+		const bulkOps = ratings.map((r) => {
+			const passenger = passengers.find((p) => p._id.toString() === r.id);
+			// Prepare new ratings array
+			const newRating = {
+				fromUserId,
 				tripId,
-			},
-			average: avgRating,
+				stars: r.rating,
+			};
+			const updatedRatings = [...(passenger.rating || []), newRating];
+			const totalStars = updatedRatings.reduce(
+				(sum, rate) => sum + rate.stars,
+				0
+			);
+			const avgRating = totalStars / updatedRatings.length;
+
+			return {
+				updateOne: {
+					filter: { _id: r.id },
+					update: {
+						$push: { rating: newRating },
+						$set: {
+							ratingCount: updatedRatings.length,
+							ratingValue: avgRating.toFixed(2),
+						},
+					},
+				},
+			};
 		});
+
+		await User.bulkWrite(bulkOps);
+
+		trip.status = "completed";
+		await trip.save();
+		res.json({ success: true, message: "All passengers rated successfully" });
+		// // Find the passenger user
+		// const passenger = await User.findById(userId);
+
+		// if (!passenger) {
+		// 	return res
+		// 		.status(404)
+		// 		.json({ success: false, message: "Passenger not found" });
+		// }
+
+		// // Prevent duplicate rating for the same trip by the same driver
+		// const alreadyRated = passenger.rating.some(
+		// 	(r) =>
+		// 		r.fromUserId.toString() === driverId && r.tripId.toString() === tripId
+		// );
+		// if (alreadyRated) {
+		// 	return res.status(400).json({
+		// 		success: false,
+		// 		message: "You have already rated this passenger for this trip",
+		// 	});
+		// }
+
+		// // Add the rating
+		// passenger.rating.push({
+		// 	fromUserId: driverId,
+		// 	tripId,
+		// 	stars,
+		// });
+		// passenger.ratingsCount = (passenger.ratingsCount || 0) + 1;
+
+		// // Calculate new average rating
+		// const totalStars = passenger.rating.reduce((sum, r) => sum + r.stars, 0);
+		// const avgRating = totalStars / passenger.rating.length;
+		// passenger.ratingValue = avgRating; // Optionally store average
+
+		// await passenger.save();
+		// res.status(200).json({
+		// 	success: true,
+		// 	message: "Passenger rated successfully",
+		// 	rating: {
+		// 		stars,
+		// 		fromUserId: driverId,
+		// 		tripId,
+		// 	},
+		// 	average: avgRating,
+		// });
 	} catch (error) {
-		res.status(500).json({ success: false, message: "Error rating passenger" });
+		res
+			.status(500)
+			.json({ success: false, message: `Error rating passengers ${error}` });
 	}
 };
 

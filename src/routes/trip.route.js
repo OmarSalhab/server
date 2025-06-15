@@ -25,7 +25,7 @@ router.get("/available", protect, asyncHandler(getAvailableTrips));
 //Passenger Queries
 router.post("/join/:tripId", protect, isPassenger, asyncHandler(joinTrip));
 router.post(
-	"/rate/:tripId/:userId",
+	"/rate-driver/:tripId/:userId",
 	protect,
 	isPassenger,
 	isCompleted,
@@ -38,10 +38,10 @@ router.get("/me", protect, isAuthorizedDriver, asyncHandler(getMyTrips));
 router.post("/:tripId", protect, isAuthorizedDriver, asyncHandler(getPassengers));
 router.post("/", protect, isAuthorizedDriver, asyncHandler(createTrip));
 router.post(
-	"/rate/:tripId/:userId",
+	"/rate-passenger/:tripId",
 	protect,
 	isAuthorizedDriver,
-	isCompleted,
+	// isCompleted,
 	asyncHandler(ratePassenger)
 );
 router.delete(
