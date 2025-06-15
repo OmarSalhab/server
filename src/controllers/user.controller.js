@@ -89,8 +89,8 @@ const loginUser = async (req, res) => {
 	// Send refresh token as httpOnly cookie
 	res.cookie("refreshToken", refreshToken, {
 		httpOnly: true,
-		sameSite: "Lax",
-		secure: false,
+		sameSite: "None",
+		secure: true,
 		maxAge: 60 * 60 * 1000, // 7 days
 	});
 
@@ -146,8 +146,8 @@ const logout = (req, res) => {
 		return res.status(204).json({ message: "No cookies content" });
 	res.clearCookie("refreshToken", {
 		httpOnly: true,
-		sameSite: "Lax",
-		secure: false,
+		sameSite: "None",
+		secure: true,
 	});
 	res.json({ message: "Cookie cleared" });
 };
