@@ -17,7 +17,7 @@ const http = require("http");
 const server = http.createServer(app);
 const { initializeSocket } = require("./src/config/socket.js");
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: "https://tawsilaa.netlify.app", credentials: true }));
 app.use(express.json());
 
 const io = initializeSocket(server);
@@ -43,6 +43,6 @@ server.listen(PORT, async () => {
 	} catch (error) {
 		console.log(error.message);
 	}
-	console.log(`Server is running on http://localhost:${PORT}`);
+	console.log(`Server is running on https://tawsila-server.onrender.com/`);
 });
 module.exports = { io };
