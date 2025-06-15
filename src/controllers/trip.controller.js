@@ -179,17 +179,23 @@ const joinTrip = async (req, res) => {
 const getPassengers = async (req, res) => {
 	const { tripId } = req.params;
 	const { users } = req.body;
-	console.log(users, tripId);
+	
 
 	if (!tripId)
 		return res.json({ success: false, message: "no trip with this Id" });
 
 	if (!users) return res.json({ success: true, data: users });
 
-	const usersInfoList = await Promise.all(users.map(async (user) => {
-		const userInfo = await User.findById(user,{name:1,gender:1,ratingValue:1});
-		return userInfo;
-	}))
+	const usersInfoList = await Promise.all(
+		users.map(async (user) => {
+			const userInfo = await User.findById(user, {
+				name: 1,
+				gender: 1,
+				ratingValue: 1,
+			});
+			return userInfo;
+		})
+	);
 	console.log(usersInfoList);
 
 	res.status(200).json({ success: true, data: usersInfoList });
@@ -240,7 +246,9 @@ const exitTrip = async (req, res) => {
 };
 
 const kickPassenger = async (req, res) => {
-	const { passengerId,tripId } = req.params;
+	const { passengerId, tripId } = req.params;
+
+	console.log(`tripId from the kick handler: ${tripId}`);
 	
 	const trip = await Trip.findById(tripId);
 	if (!trip) {
@@ -258,10 +266,33 @@ const kickPassenger = async (req, res) => {
 	trip.joinedPassengers.splice(passengerIndex, 1);
 
 	await trip.save();
+
+	const trp = await Trip.findById(tripId)
+		.populate("driverId", "name phone gender ratingValue")
+		.populate("routeId", "to from roomName");
+
+	const formattedTrip = formatTrip(trp);
+
+
+	getIO()
+		.to(tripId.trim())
+		.emit("room_passenger_kicked", {
+			tripId,
+			passenger: passengerId,
+			ride: [{ ...formattedTrip }],
+		});
+	// getIO()
+	// 	.to(req.user.routeId._id.toString())
+	// 	.emit("route_passenger_kicked", {
+	// 		tripId,
+	// 		passenger: passengerId,
+	// 		ride: [{ ...formattedTrip }],
+	// 	});
+
 	res.status(200).json({
 		success: true,
 		message: "You kicked the user successfully",
-		data: trip,
+		
 	});
 };
 

@@ -51,26 +51,29 @@ const initializeSocket = (server) => {
 			if (!tripId) return;
 
 			activeRoomUsers.set(socket.id, tripId);
-			// Leave any previous rooms
-			socket.rooms.forEach((room) => {
-				if (room !== socket.id) {
-					socket.leave(room);
-					const usersInRoom = Array.from(activeUsers.values()).filter(
-						(id) => id === room
-					).length;
-					console.log(
-						`User ${socket.id} disconnected from prev room: ${room} ${usersInRoom}`
-					);
-					io.to(room).emit("room_memebers_count", usersInRoom);
-				}
-			});
 
+			
 			// Join the new route room
 			socket.join(tripId);
 			const usersInRoom = Array.from(activeRoomUsers.values()).filter(
 				(id) => id === tripId
 			).length;
 			console.log(`User ${socket.id} joined room: ${tripId} ${usersInRoom}`);
+			
+			
+			io.to(tripId).emit("room_memebers_count", usersInRoom);
+		});
+
+		socket.on("leave_room", (tripId) => {
+			if (!tripId) return;
+			socket.leave(tripId);
+			activeRoomUsers.delete(socket.id);
+			const usersInRoom = Array.from(activeRoomUsers.values()).filter(
+				(id) => id === tripId
+			).length;
+			console.log(
+				`User ${socket.id} disconnected from room: ${tripId} ${usersInRoom}`
+			);
 			io.to(tripId).emit("room_memebers_count", usersInRoom);
 		});
 
