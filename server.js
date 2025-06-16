@@ -7,7 +7,7 @@ const tripRoutes = require("./src/routes/trip.route.js");
 const userRoutes = require("./src/routes/user.route.js");
 const routeRoutes = require("./src/routes/route.route.js");
 const globalChatRoutes = require("./src/routes/globalChat.route.js");
-const tripChatRoutes = require("./src/routes/tripChat.route.js")
+const tripChatRoutes = require("./src/routes/tripChat.route.js");
 
 dotenv.config({ path: ".\\src\\config\\.env" });
 const PORT = process.env.PORT || 9001;
@@ -16,12 +16,26 @@ const cookieParser = require("cookie-parser");
 const http = require("http");
 const server = http.createServer(app);
 const { initializeSocket } = require("./src/config/socket.js");
-
-app.use(cors({ origin: "https://tawsilaa.netlify.app", credentials: true }));
+const allowedOrigins = [
+	"https://tawsilaa.netlify.app",
+	"http://localhost:5173",
+];
+app.use(
+	cors({
+		origin: function (origin, callback) {
+			if (!origin) return callback(null, true);
+			if (allowedOrigins.includes(origin)) {
+				return callback(null, true);
+			} else {
+				return callback(new Error("Not allowed by CORS"));
+			}
+		},
+		credentials: true,
+	})
+);
 app.use(express.json());
 
 const io = initializeSocket(server);
-
 
 app.use(cookieParser());
 
