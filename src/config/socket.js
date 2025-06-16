@@ -4,11 +4,21 @@ const RouteChatMessage = require("../models/RouteChatMessage.js");
 const TripChatMessage = require("../models/TripChatMessage.js");
 const User = require("../models/User.js");
 let io;
-
+const allowedOrigins = [
+	"https://tawsilaa.netlify.app",
+	"http://localhost:5173",
+];
 const initializeSocket = (server) => {
 	io = new Server(server, {
 		cors: {
-			origin: "http://localhost:5173",
+			origin: function (origin, callback) {
+				if (!origin) return callback(null, true);
+				if (allowedOrigins.includes(origin)) {
+					return callback(null, true);
+				} else {
+					return callback(new Error("Not allowed by CORS"));
+				}
+			},
 		},
 	});
 
@@ -52,15 +62,13 @@ const initializeSocket = (server) => {
 
 			activeRoomUsers.set(socket.id, tripId);
 
-			
 			// Join the new route room
 			socket.join(tripId);
 			const usersInRoom = Array.from(activeRoomUsers.values()).filter(
 				(id) => id === tripId
 			).length;
 			console.log(`User ${socket.id} joined room: ${tripId} ${usersInRoom}`);
-			
-			
+
 			io.to(tripId).emit("room_memebers_count", usersInRoom);
 		});
 
