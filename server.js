@@ -57,6 +57,6 @@ server.listen(PORT, async () => {
 	} catch (error) {
 		console.log(error.message);
 	}
-	console.log(`Server is running on https://tawsila-server.onrender.com/`);
+	console.log(`Server is running`);
 });
 module.exports = { io };
